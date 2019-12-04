@@ -1,0 +1,18 @@
+<launch>
+
+	<arg name="node_name" default="ac_node"/>
+	<arg name="robot_name" default="andrew"/>
+	<arg name="gamma" default="1"/>
+
+	<group ns="$(arg robot_name)">
+
+      <node pkg="adaptive_controller" name="$(arg node_name)" type="$(arg node_name).py" output="screen">
+				<param name="~yp_k" 					value="[0.0 0.0]" 			/>
+				<param name="~ym_k" 					value="[0.0 0.0]" 			/>
+				<param name="~ref_k" 					value="[0.0 0.0]" 			/>
+				<param name="~theta_hat_k" 		value="0.0" 						/>
+				<param name="~gamma"					type="int" 		value="$(arg gamma)" 			/>
+      </node>
+    </group>
+
+</launch>
