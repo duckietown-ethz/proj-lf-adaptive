@@ -6,7 +6,9 @@ export VEHNAME=andrew
 # NOTE: to make only run the container without rebuilding it, just run the run command
 
 # BUILD
-docker -H "$VEHNAME".local build -t proj-lf-adaptive:v1 .
+# docker -H "$VEHNAME".local build -t proj-lf-adaptive:v1
+dts devel build -f --arch arm32v7 -H "$VEHNAME".local
 
 # RUN
-docker -H "$VEHNAME".local run -it --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1
+# docker -H "$VEHNAME".local run -it --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1
+docker -H "$VEHNAME".local run -it --rm --net=host duckietown/proj-lf-adaptive:v1-arm32v7 /bin/bash
