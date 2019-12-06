@@ -6,14 +6,15 @@ ARG REPO_NAME="proj-lf-adaptive"
 ARG ARCH=arm32v7
 ARG MAJOR=daffy
 ARG BASE_TAG=${MAJOR}-${ARCH}
-ARG BASE_IMAGE=dt-ros-commons
+ARG BASE_IMAGE=dt-core
 
 # define base image
 FROM duckietown/${BASE_IMAGE}:${BASE_TAG}
 
 # define repository path
 ARG REPO_NAME
-ARG REPO_PATH="${CATKIN_WS_DIR}/src/${REPO_NAME}"
+#ARG REPO_PATH="${CATKIN_WS_DIR}/src/${REPO_NAME}"
+ARG REPO_PATH="${CATKIN_WS_DIR}/src/dt-core"
 WORKDIR "${REPO_PATH}"
 
 # create repo directory
