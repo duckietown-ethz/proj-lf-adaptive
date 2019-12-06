@@ -1,12 +1,11 @@
 <launch>
 
 	<arg name="node_name" default="ac_node"/>
-	<arg name="robot_name" default="andrew"/>
 	<arg name="gamma" default="1"/>
 	
 	<include file="$(find adaptive_controller)/launch/lane_following.launch"/>
 
-	<group ns="$(arg robot_name)">
+	<group ns="$(arg veh)">
 
       <node pkg="adaptive_controller" name="$(arg node_name)" type="$(arg node_name).py" output="screen">
 				<param name="~yp_k" 					value="[0.0 0.0]" 			/>
