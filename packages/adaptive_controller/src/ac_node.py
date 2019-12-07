@@ -51,6 +51,9 @@ class AdaptiveControllerNode(DTROS):
         self.yp_k_minus = self.yp_k
         self.t_k_minus = self.t_k
 
+        # self.car_cmd_corrected.v = 0.0
+        # self.car_cmd_corrected.omega = 0.0
+
         # MAKE IT CLEANER: queste variabili non servono necessariamente, se non per tenere traccia dell'evoluzione
         #self.theta_hat_k_minus = self.theta_hat_k
         #self.ref_k_minus = self.ref_k
@@ -87,7 +90,8 @@ class AdaptiveControllerNode(DTROS):
         # start_time = rospy.Time.now()
 
         Ts = self.t_k - self.t_k_minus
-        Ts = rospy.Time.to_sec(Ts)
+        #Ts = rospy.Time.to_sec(Ts)
+        Ts = Ts.to_sec()
 
         self.ym_k[0] = self.yp_k_minus[0] + self.ref_k[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k[1] * Ts * 0.5)
         self.ym_k[1] = self.yp_k_minus[1] + self.ref_k[1] * Ts
@@ -102,6 +106,7 @@ class AdaptiveControllerNode(DTROS):
 
         self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
 
+        car_cmd_corrected = Twist2DStamped()
         car_cmd_corrected.v = self.ref_k[0]
         car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
 
