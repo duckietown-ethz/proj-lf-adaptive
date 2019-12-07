@@ -11,4 +11,4 @@ dts devel build -f --arch arm32v7 -H "$VEHNAME".local
 
 # RUN
 # docker -H "$VEHNAME".local run -it --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1
-docker -H "$VEHNAME".local run -it --rm --net=host duckietown/proj-lf-adaptive:v1-arm32v7 /bin/bash
+docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:v1-arm32v7 /bin/bash
