@@ -4,9 +4,9 @@
 
 	<include file="$(find adaptive_controller)/launch/lane_following.launch"/>
 
-	<group ns="$VEHICLE_NAME">
-      <node pkg="adaptive_controller" name="$(arg node_name)" type="$(arg node_name).py" output="screen">
-      </node>
-    </group>
+	<group ns="$(env VEHICLE_NAME)">
+    <node pkg="adaptive_controller" name="$(arg node_name)" type="$(arg node_name).py" output="screen">
+    </node>
+  </group>
 
 </launch>

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export VEHNAME=andrew
+export VEHNAME="andrew"
 #export VEHNAME=autobot24
 
 # NOTE: to make only run the container without rebuilding it, just run the run command
@@ -11,4 +11,4 @@ dts devel build -f --arch arm32v7 -H "$VEHNAME".local
 
 # RUN
 # docker -H "$VEHNAME".local run -it --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1
-docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:v1-arm32v7 /bin/bash
+docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:ac_v2-arm32v7 /bin/bash

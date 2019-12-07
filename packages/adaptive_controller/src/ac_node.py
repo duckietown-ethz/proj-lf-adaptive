@@ -42,11 +42,11 @@ class AdaptiveControllerNode(DTROS):
         # V2: remove as much as possible all external params and replace them with self variables
         self.gamma = 1
 
-        self.yp_k = np.asarray([0.0 0.0])
+        self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
         self.t_k = rospy.Time.now()
         self.theta_hat_k = 0.0
-        self.ref_k = np.asarray([0.0 0.0])
+        self.ref_k = np.asarray([0.0, 0.0])
 
         self.yp_k_minus = self.yp_k
         self.t_k_minus = self.t_k
@@ -64,7 +64,7 @@ class AdaptiveControllerNode(DTROS):
         self.sub_actuator_limits = rospy.Subscriber("actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
 
         self.log("Initialized")
-        self.loginfo("========== Initialized AC node ==========")
+        #self.loginfo("========== Initialized AC node ==========")
 
     def getPose(self, poseMsg):
         d = poseMsg.d
