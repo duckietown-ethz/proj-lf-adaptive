@@ -492,7 +492,7 @@ class lane_controller(object):
         If the Adaptive controller is on, the control command computed previously is sent as a reference signal to the AC,
         otherwise it is published as the standard car_cmd .
         '''
-        ac_on = setupParameter("~ac_on",True)
+        ac_on = self.setupParameter("~ac_on",True)
         if ac_on:
             self.pub_ac_rif.publish(car_control_msg)
         else:
