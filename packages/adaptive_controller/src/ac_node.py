@@ -67,7 +67,6 @@ class AdaptiveControllerNode(DTROS):
         self.sub_actuator_limits = rospy.Subscriber("lane_controller_node/actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
 
         self.log("Initialized")
-        #self.loginfo("========== Initialized AC node ==========")
 
     def getPose(self, poseMsg):
         d = poseMsg.d
@@ -87,40 +86,46 @@ class AdaptiveControllerNode(DTROS):
         #   5) Retrieve car commands v and omega
         #   6) Compute corrected control command
 
-        # start_time = rospy.Time.now()
+        start_time = rospy.Time.now()
 
         Ts = self.t_k - self.t_k_minus
         #Ts = rospy.Time.to_sec(Ts)
         Ts = Ts.to_sec()
 
-        self.ym_k[0] = self.yp_k_minus[0] + self.ref_k[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k[1] * Ts * 0.5)
-        self.ym_k[1] = self.yp_k_minus[1] + self.ref_k[1] * Ts
-        # self.ym_k[0] = self.yp_k_minus[0] + self.ref_k_minus[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k_minus[1] * Ts * 0.5)
-        # self.ym_k[1] = self.yp_k_minus[1] + self.ref_k_minus[1] * Ts
+        if Ts > 0.005:
+            self.ym_k[0] = self.yp_k_minus[0] + self.ref_k[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k[1] * Ts * 0.5)
+            self.ym_k[1] = self.yp_k_minus[1] + self.ref_k[1] * Ts
+            # self.ym_k[0] = self.yp_k_minus[0] + self.ref_k_minus[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k_minus[1] * Ts * 0.5)
+            # self.ym_k[1] = self.yp_k_minus[1] + self.ref_k_minus[1] * Ts
 
-        e =  self.yp_k - self.ym_k
+            e =  self.yp_k - self.ym_k
 
-        theta_hat_k_d = - self.gamma * e[1]
-        self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
-        # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
+            theta_hat_k_d = - self.gamma * e[1]
+            self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
+            # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
 
-        self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
+            self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
 
-        car_cmd_corrected = Twist2DStamped()
-        car_cmd_corrected.v = self.ref_k[0]
-        car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
+            car_cmd_corrected = Twist2DStamped()
+            car_cmd_corrected.v = self.ref_k[0]
+            car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
 
-        self.pub_corrected_car_cmd.publish(car_cmd_corrected)
+            self.pub_corrected_car_cmd.publish(car_cmd_corrected)
 
-        self.yp_k_minus = self.yp_k
-        self.t_k_minus = self.t_k
+            self.yp_k_minus = self.yp_k
+            self.t_k_minus = self.t_k
 
-        # self.theta_hat_k_minus = self.theta_hat_k
-        # self.ref_k_minus = self.ref_k
+            # self.theta_hat_k_minus = self.theta_hat_k
+            # self.ref_k_minus = self.ref_k
 
-        # end_time = rospy.Time.now()
-        # latency = end_time - start_time
-        # self.log(rospy.Time.to_sec(latency))
+            self.log("=============================================="
+            self.log("omega rif : %f" % car_cmd.omega)
+            self.log("error : %f" % e)
+            self.log("theta_hat_k : %f" % theta_hat_k)
+
+        end_time = rospy.Time.now()
+        latency = end_time - start_time
+        self.log("latency : %f" % rospy.Time.to_sec(latency))
 
 
 
