@@ -56,12 +56,12 @@ class AdaptiveControllerNode(DTROS):
         #self.ref_k_minus = self.ref_k
 
         # Publication
-        self.pub_corrected_car_cmd = rospy.Publisher("~car_cmd", Twist2DStamped, queue_size=1)
+        self.pub_corrected_car_cmd = rospy.Publisher("lane_controller_node/car_cmd", Twist2DStamped, queue_size=1)
 
         # Subscriptions, no tilde otherwise will sub to topic like ac_node/lane_pose which doesn't exist
-        self.sub_lane_readin = rospy.Subscriber("lane_pose", LanePose, self.getPose, queue_size=1)
-        self.sub_wheels_cmd_executed = rospy.Subscriber("ac_rif", Twist2DStamped, self.correctCommand, queue_size=1)
-        self.sub_actuator_limits = rospy.Subscriber("actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
+        self.sub_lane_readin = rospy.Subscriber("lane_filter_node/lane_pose", LanePose, self.getPose, queue_size=1)
+        self.sub_wheels_cmd_executed = rospy.Subscriber("lane_controller_node/ac_rif", Twist2DStamped, self.correctCommand, queue_size=1)
+        self.sub_actuator_limits = rospy.Subscriber("lane_controller_node/actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
 
         self.log("Initialized")
         #self.loginfo("========== Initialized AC node ==========")
@@ -87,6 +87,7 @@ class AdaptiveControllerNode(DTROS):
         # start_time = rospy.Time.now()
 
         Ts = self.t_k - self.t_k_minus
+        Ts = rospy.Time.to_sec(Ts)
 
         self.ym_k[0] = self.yp_k_minus[0] + self.ref_k[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k[1] * Ts * 0.5)
         self.ym_k[1] = self.yp_k_minus[1] + self.ref_k[1] * Ts
