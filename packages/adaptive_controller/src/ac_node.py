@@ -53,6 +53,7 @@ class AdaptiveControllerNode(DTROS):
         self.sub_actuator_limits = rospy.Subscriber("actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
 
         self.log("Initialized")
+        self.loginfo("========== Initialized AC node ==========")
 
     def getPose(self, poseMsg):
         d = poseMsg.d
@@ -97,6 +98,7 @@ class AdaptiveControllerNode(DTROS):
             #publish u = [0 , 0] wheel cmd
 
             self.initialized = True
+            self.log("Initialized AC")
 
 
         else:
@@ -131,6 +133,8 @@ class AdaptiveControllerNode(DTROS):
             # To solve for theta_hat a simple first order Forward Euler method is used (ADAPTATION LAW)
             theta_hat_k_d = - gamma * e[1]
             theta_hat_k = theta_hat + Ts * theta_hat_k_d
+
+            self.loginfo("theta hat: %f" % theta_hat_k)
 
             #   5) Retrieve reference v and omega
             v = car_cmd.v

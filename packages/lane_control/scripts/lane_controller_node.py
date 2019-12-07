@@ -92,7 +92,7 @@ class lane_controller(object):
     def setupParameter(self,param_name,default_value):
         value = rospy.get_param(param_name,default_value)
         rospy.set_param(param_name,value)   # Write to parameter server for transparancy
-        rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+        #rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
         return value
 
     def setGains(self):
@@ -492,8 +492,8 @@ class lane_controller(object):
         If the Adaptive controller is on, the control command computed previously is sent as a reference signal to the AC,
         otherwise it is published as the standard car_cmd .
         '''
-        ac_on = self.setupParameter("~ac_on",True)
-        if ac_on:
+        self.ac_on = self.setupParameter("~ac_on",True)
+        if self.ac_on:
             self.pub_ac_rif.publish(car_control_msg)
         else:
             self.publishCmd(car_control_msg)
