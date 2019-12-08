@@ -40,16 +40,18 @@ class AdaptiveControllerNode(DTROS):
         self.veh_name = rospy.get_namespace().strip("/")
 
         # V2: remove as much as possible all external params and replace them with self variables
-        self.gamma = 0.1
+        self.gamma = 0.01
 
         self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
         self.t_k = rospy.Time.now()
         self.theta_hat_k = 0.0
         self.ref_k = np.asarray([0.0, 0.0])
+        self.e_k = np.asarray([0.0, 0.0])
 
         self.yp_k_minus = self.yp_k
         self.t_k_minus = self.t_k
+        self.e_k_minus = self.e_k
 
         # self.car_cmd_corrected.v = 0.0
         # self.car_cmd_corrected.omega = 0.0
@@ -101,7 +103,7 @@ class AdaptiveControllerNode(DTROS):
         # Init message
         car_cmd_corrected = Twist2DStamped()
 
-        if (Ts > 0.005) and (Ts < 1) :
+        if (Ts > 0.005) and (Ts < 0.5):
 
             # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
             # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
@@ -114,23 +116,40 @@ class AdaptiveControllerNode(DTROS):
             # self.ym_k[1] = self.yp_k_minus[1] + self.ref_k_minus[1] * Ts
 
             # (3) : Calculate e
-            e =  self.yp_k - self.ym_k
+            self.e_k =  self.yp_k - self.ym_k
 
-            # (4) : Update the Adaptation law
-            theta_hat_k_d = - gamma * e[0]
-            self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
-            # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
+            self.log("omega rif : %f" % car_cmd.omega)
+            self.log("error : %f" % self.e_k[0])
 
-            # (5) : Compute corrected control command
-            car_cmd_corrected.v = self.ref_k[0]
-            car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
+            # Check variance of pose
+            delta_e = self.e_k -self.e_k_minus
+            self.log("delta on error : %f" % delta_e[1])
+
+            # Upper bounds for reasonable delta_e
+            ub_d = self.ref_k[0] * Ts   # worst case scenario: bot moving perpendiculary to lane
+
+            if abs(delta_e[0]) < ub_d:
+
+                # (4) : Update the Adaptation law
+                theta_hat_k_d = - gamma * self.e_k[0]
+                self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
+                # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
+
+                self.log("theta_hat_k : %f" % self.theta_hat_k)
+
+                # (5) : Compute corrected control command
+                car_cmd_corrected.v = self.ref_k[0]
+                car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
+
+            else:
+                car_cmd_corrected.v = self.ref_k[0]
+                car_cmd_corrected.omega = self.ref_k[1]
+
+                self.log("sample rejected!")
 
             # self.theta_hat_k_minus = self.theta_hat_k
             # self.ref_k_minus = self.ref_k
 
-            self.log("omega rif : %f" % car_cmd.omega)
-            self.log("error : %f" % e[0])
-            self.log("theta_hat_k : %f" % self.theta_hat_k)
 
         else:
             # If the sampling time between two frames is to short, ignore the sample as it
@@ -148,6 +167,7 @@ class AdaptiveControllerNode(DTROS):
         # Update variables for next iteration
         self.yp_k_minus = self.yp_k
         self.t_k_minus = self.t_k
+        self.e_k_minus = self.e_k
 
 
         end_time = rospy.Time.now()
