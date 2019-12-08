@@ -119,19 +119,19 @@ class AdaptiveControllerNode(DTROS):
             self.e_k =  self.yp_k - self.ym_k
 
             self.log("omega rif : %f" % car_cmd.omega)
-            self.log("error : %f" % self.e_k[0])
+            self.log("error : %f" % self.e_k[1])
 
             # Check variance of pose
             delta_e = self.e_k -self.e_k_minus
             self.log("delta on error : %f" % delta_e[1])
 
             # Upper bounds for reasonable delta_e
-            ub_d = self.ref_k[0] * Ts   # worst case scenario: bot moving perpendiculary to lane
+            ub_d = self.ref_k[0]*Ts*10000   # worst case scenario: bot moving perpendiculary to lane
 
             if abs(delta_e[0]) < ub_d:
 
                 # (4) : Update the Adaptation law
-                theta_hat_k_d = - gamma * self.e_k[0]
+                theta_hat_k_d = - gamma * self.e_k[1]
                 self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
                 # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
 
@@ -162,6 +162,7 @@ class AdaptiveControllerNode(DTROS):
 
 
         # Pubblish corrected command
+        car_cmd_corrected.v = 0.1
         self.pub_corrected_car_cmd.publish(car_cmd_corrected)
 
         # Update variables for next iteration
