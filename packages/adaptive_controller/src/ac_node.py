@@ -40,7 +40,7 @@ class AdaptiveControllerNode(DTROS):
         self.veh_name = rospy.get_namespace().strip("/")
 
         # V2: remove as much as possible all external params and replace them with self variables
-        self.gamma = 1
+        self.gamma = 0.001
 
         self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
