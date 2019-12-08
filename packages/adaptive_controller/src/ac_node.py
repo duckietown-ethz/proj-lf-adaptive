@@ -79,54 +79,80 @@ class AdaptiveControllerNode(DTROS):
     def correctCommand(self, car_cmd):
 
         # In here we want to do three things:
-        #   1) Calculate Ts from the past two yp
+        #   1) Compute Ts from the past two yp
         #   2) Predict current ym based on previus yp, reference and Ts
         #   3) Calculate e
         #   4) Update the Adaptation law (now up to present time)
-        #   5) Retrieve car commands v and omega
-        #   6) Compute corrected control command
+        #   5) Compute corrected control command
+
+        self.log("==============================================")
 
         start_time = rospy.Time.now()
 
+        # (1) : Compute sampling time
         Ts = self.t_k - self.t_k_minus
         #Ts = rospy.Time.to_sec(Ts)
         Ts = Ts.to_sec()
+        self.log("Ts : %f" % Ts)
+
+        # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
+        # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
+        gamma = self.gamma / Ts
+
+        # Car message from PI controller
+        self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
+
+        # Init message
+        car_cmd_corrected = Twist2DStamped()
 
         if Ts > 0.005:
+
+            # (2) : Predict current ym based on previus yp, reference and Ts
             self.ym_k[0] = self.yp_k_minus[0] + self.ref_k[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k[1] * Ts * 0.5)
             self.ym_k[1] = self.yp_k_minus[1] + self.ref_k[1] * Ts
             # self.ym_k[0] = self.yp_k_minus[0] + self.ref_k_minus[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k_minus[1] * Ts * 0.5)
             # self.ym_k[1] = self.yp_k_minus[1] + self.ref_k_minus[1] * Ts
 
+            # (3) : Calculate e
             e =  self.yp_k - self.ym_k
 
+            # (4) : Update the Adaptation law
             theta_hat_k_d = - self.gamma * e[1]
             self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
             # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
 
-            self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
-
-            car_cmd_corrected = Twist2DStamped()
+            # (5) : Compute corrected control command
             car_cmd_corrected.v = self.ref_k[0]
             car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
-
-            self.pub_corrected_car_cmd.publish(car_cmd_corrected)
-
-            self.yp_k_minus = self.yp_k
-            self.t_k_minus = self.t_k
 
             # self.theta_hat_k_minus = self.theta_hat_k
             # self.ref_k_minus = self.ref_k
 
-            self.log("=============================================="
             self.log("omega rif : %f" % car_cmd.omega)
             self.log("error : %f" % e)
             self.log("theta_hat_k : %f" % theta_hat_k)
 
+        else:
+            # If the sampling time between two frames is to short, ignore the sample as it
+            # probably is unreliable.
+
+            car_cmd_corrected.v = self.ref_k[0]
+            car_cmd_corrected.omega = self.ref_k[1]
+
+            self.log("sample rejected!")
+
+
+        # Pubblish corrected command
+        self.pub_corrected_car_cmd.publish(car_cmd_corrected)
+
+        # Update variables for next iteration
+        self.yp_k_minus = self.yp_k
+        self.t_k_minus = self.t_k
+
+
         end_time = rospy.Time.now()
         latency = end_time - start_time
         self.log("latency : %f" % rospy.Time.to_sec(latency))
-
 
 
     def actuator_limits_callback(self, msg):
