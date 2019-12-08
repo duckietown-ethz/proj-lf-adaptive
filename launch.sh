@@ -4,5 +4,5 @@ set -e
 
 # YOUR CODE BELOW THIS LINE
 # ----------------------------------------------------------------------------
-echo "Per ora fa nu cazz"
-# roslaunch 
+roslaunch adaptive_controller ac.launch
+# roslaunch

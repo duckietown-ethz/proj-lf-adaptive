@@ -95,17 +95,17 @@ class AdaptiveControllerNode(DTROS):
         Ts = Ts.to_sec()
         self.log("Ts : %f" % Ts)
 
-        # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
-        # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
-        gamma = self.gamma / Ts
-
         # Car message from PI controller
         self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
 
         # Init message
         car_cmd_corrected = Twist2DStamped()
 
-        if Ts > 0.005:
+        if (Ts > 0.005) and (Ts < 1) :
+
+            # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
+            # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
+            gamma = self.gamma / Ts
 
             # (2) : Predict current ym based on previus yp, reference and Ts
             self.ym_k[0] = self.yp_k_minus[0] + self.ref_k[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k[1] * Ts * 0.5)
@@ -129,8 +129,8 @@ class AdaptiveControllerNode(DTROS):
             # self.ref_k_minus = self.ref_k
 
             self.log("omega rif : %f" % car_cmd.omega)
-            self.log("error : %f" % e)
-            self.log("theta_hat_k : %f" % theta_hat_k)
+            self.log("error : %f" % e[1])
+            self.log("theta_hat_k : %f" % self.theta_hat_k)
 
         else:
             # If the sampling time between two frames is to short, ignore the sample as it
@@ -152,7 +152,8 @@ class AdaptiveControllerNode(DTROS):
 
         end_time = rospy.Time.now()
         latency = end_time - start_time
-        self.log("latency : %f" % rospy.Time.to_sec(latency))
+        # self.log("latency : %f" % rospy.Time.to_sec(latency))
+        self.log("latency : %f" % latency.to_sec())
 
 
     def actuator_limits_callback(self, msg):

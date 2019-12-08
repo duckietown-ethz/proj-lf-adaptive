@@ -5,7 +5,7 @@
 	<arg name="pkg_name" default="lane_control" doc="name of the package"/>
 	<arg name="node_name" default="lane_controller_node" doc="name of the node"/>
 
-	<arg name="ac_on" default="False" doc="Switch for Adaptive Controller node: set to 1 if want to run AC, 0 otherwise."/>
+	<arg name="ac_on" default="True" doc="Switch for Adaptive Controller node: set to 1 if want to run AC, 0 otherwise."/>
 
     <group ns="$(arg veh)">
 	    <node  pkg="$(arg pkg_name)" type="$(arg node_name).py" name="$(arg node_name)" output="screen" required="true">
