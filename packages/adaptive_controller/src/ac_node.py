@@ -162,7 +162,7 @@ class AdaptiveControllerNode(DTROS):
 
 
         # Pubblish corrected command
-        car_cmd_corrected.v = 0.1
+        #car_cmd_corrected.v = 0.1
         self.pub_corrected_car_cmd.publish(car_cmd_corrected)
 
         # Update variables for next iteration
