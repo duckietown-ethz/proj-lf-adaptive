@@ -9,9 +9,9 @@
 #d_offset: 0.0
 
 v_bar: 0.23
-k_d: -3.5
-k_theta: -1
-k_Id: 1
+k_d: -2.5
+k_theta: -0.9
+k_Id: 1.4
 k_Iphi: 0.0
 theta_thres: 0.523
 d_thres: 0.2615
