@@ -63,7 +63,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         configuration = copy.deepcopy(configuration)
         Configurable.__init__(self, param_names, configuration)
 
-        
+
 
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
                                     self.phi_min:self.phi_max:self.delta_phi]
@@ -71,7 +71,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
             np.mgrid[self.d_min:(self.d_max + self.delta_d):self.delta_d,
                      self.phi_min:(self.phi_max + self.delta_phi):self.delta_phi]
 
-        #rospy.loginfo('self.d_min: %s self.d_max: %s self.delta_d: %s' % (self.d_min, self.d_max, self.delta_d))           
+        #rospy.loginfo('self.d_min: %s self.d_max: %s self.delta_d: %s' % (self.d_min, self.d_max, self.delta_d))
 
 
         self.beliefArray = []
@@ -106,7 +106,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
         self.delta_phi = self.default_delta_phi * param_mesh_size
         self.d, self.phi = np.mgrid[self.d_min:self.d_max:self.delta_d,
                                     self.phi_min:self.phi_max:self.delta_phi]
-        self.updateRangeArray(self.curvature_res)       
+        self.updateRangeArray(self.curvature_res)
 
     def getStatus(self):
         return LaneFilterInterface.GOOD
@@ -147,8 +147,10 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
     def predict(self, dt, v, w):
         delta_t = dt
-        d_t = self.d + v * delta_t * np.sin(self.phi)
         phi_t = self.phi + w * delta_t
+        #d_t = self.d + v * delta_t * np.sin(self.phi)                  # forward Euler
+        d_t = self.d + v * delta_t * np.sin(self.phi + 0.5*delta_t*w)   # Runge-Kutta
+
 
         for k in range(self.curvature_res+1):
             p_belief = np.zeros(self.beliefArray[k].shape)
@@ -261,7 +263,7 @@ class LaneFilterHistogram(Configurable, LaneFilterInterface):
 
         # initialize measurement likelihood to all zeros
         measurement_likelihood = np.zeros(self.d.shape)
-        #rospy.loginfo('measurement_likelihood matrix size: %s , %s' % (len(measurement_likelihood), len(measurement_likelihood[0]))) 
+        #rospy.loginfo('measurement_likelihood matrix size: %s , %s' % (len(measurement_likelihood), len(measurement_likelihood[0])))
         #rospy.loginfo('measurement_likelihood: %s' % measurement_likelihood)
         for segment in segments:
             d_i, phi_i, l_i, weight =  self.generateVote(segment)
