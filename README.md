@@ -1,4 +1,4 @@
-## Autonomous Mobility on Demand - Fall 2019
+### Autonomous Mobility on Demand - Fall 2019
 
 <div figure-id="fig:header">
      <img src="media/duckietown_header.png" style='width: 20em'/>
@@ -8,15 +8,15 @@
 ## Adaptive lane following
 
 Authors:
-> * Pietro Griffa         griffap@student.ethz.ch
-> * Simone Arreghini      arsimone@student.ethz.ch
+* Pietro Griffa         &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; griffap@student.ethz.ch
+* Simone Arreghini      &nbsp; &nbsp; &nbsp; &nbsp; arsimone@student.ethz.ch
 
 Mentors:
-> * Rohit Suri
-> * Aleksandar Petrov
+* Rohit Suri
+* Aleksandar Petrov
 
 Supervisor:
-> * Jacopo Tani
+* Jacopo Tani
 
 
 ## Goal
