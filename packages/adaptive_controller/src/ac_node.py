@@ -40,7 +40,7 @@ class AdaptiveControllerNode(DTROS):
         self.veh_name = rospy.get_namespace().strip("/")
 
         # V2: remove as much as possible all external params and replace them with self variables
-        self.gamma = 0.01
+        self.gamma = 0.03
 
         self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
@@ -131,7 +131,7 @@ class AdaptiveControllerNode(DTROS):
             if abs(delta_e[0]) < ub_d:
 
                 # (4) : Update the Adaptation law
-                theta_hat_k_d = - gamma * self.e_k[1]
+                theta_hat_k_d = - self.gamma * self.e_k[1]
                 self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
                 # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
 
