@@ -1,6 +1,10 @@
 <launch>
 	<arg name="veh"/>
+<<<<<<< HEAD
 	<arg name="param_file_name" default="corrected" doc="Specify a param file. ex:megaman"/>
+=======
+	<arg name="param_file_name" default="ac_config" doc="Specify a param file. ex:megaman"/>
+>>>>>>> 304ab1819e417487c169e4b3cbdeefac53b6ff63
 	<arg name="param_file_name_wheels_driver_node" default="default" doc="Specify a param file. ex:megaman"/>
 	<arg name="pkg_name" default="lane_control" doc="name of the package"/>
 	<arg name="node_name" default="lane_controller_node" doc="name of the node"/>

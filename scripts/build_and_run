@@ -1,17 +1,36 @@
 #!/bin/bash
 
-export VEHNAME="andrew"
-#export VEHNAME=autobot24
+#export VEHNAME=andrew
+export VEHNAME=paperinik313
 
 # NOTE: to make only run the container without rebuilding it, just run the run command
 
 # BUILD
 # docker -H "$VEHNAME".local build -t proj-lf-adaptive:v1
-dts devel build -f --arch arm32v7 -H "$VEHNAME".local
+dts devel build --ignore-watchtower -f --arch arm32v7 -H "$VEHNAME".local
 
-spd-say "finito"
-
+# RUN
 # RUN
 # docker -H "$VEHNAME".local run -it --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1
 docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:new_lane-arm32v7 /bin/bash
 # docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:v2_dbg-arm32v7
+
+#roslaunch adaptive_controller lane_following.launch
+
+#DEMO
+#dts duckiebot demo --demo_name all_drivers --duckiebot_name paperinik313 --package_name duckiebot_interface --image duckietown/dt-duckiebot-interface:daffy
+#dts duckiebot demo --demo_name all --duckiebot_name paperinik313 --package_name car_interface --image duckietown/dt-car-interface:daffy
+#dts duckiebot demo --demo_name lane_following --duckiebot_name paperinik313 --package_name duckietown_demos --image duckietown/dt-core:daffy
+#dts duckiebot keyboard_control paperinik313 --base_image duckietown/dt-core:daffy-amd64
+#docker run -it --rm  -e ROS_MASTER_URI='http://192.168.1.168:11311/' duckietown/dt-ros-commons:daffy-amd64 /bin/bash
+
+#topics
+#/paperinik313/lane_filter_node/lane_pose
+#/paperinik313/lane_controller_node/car_cmd
+
+#params for lane controller node
+#/paperinik313/lane_controller_node/k_Id
+#/paperinik313/lane_controller_node/k_Iphi
+#/paperinik313/lane_controller_node/k_d
+#/paperinik313/lane_controller_node/k_theta
+#/paperinik313/lane_controller_node/ac_on
