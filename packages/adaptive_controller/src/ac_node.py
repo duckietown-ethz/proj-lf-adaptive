@@ -10,6 +10,8 @@ import math
 from duckietown import DTROS
 from duckietown_msgs.msg import Twist2DStamped, LanePose, WheelsCmdStamped, BoolStamped, FSMState, StopLineReading
 
+from scipy.ndimage.interpolation import shift
+
 # If using the python control library, check dependencies_py.txt, I put it but not sure if it works
 #import control
 
@@ -40,7 +42,8 @@ class AdaptiveControllerNode(DTROS):
         self.veh_name = rospy.get_namespace().strip("/")
 
         # V2: remove as much as possible all external params and replace them with self variables
-        self.gamma = 0.05
+        # self.gamma = 0.05
+        self.gamma = rospy.get_param("~gamma")
 
         self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
@@ -60,8 +63,12 @@ class AdaptiveControllerNode(DTROS):
         #self.theta_hat_k_minus = self.theta_hat_k
         #self.ref_k_minus = self.ref_k
 
+        # Make sure that that the commanded speed is in the allowable range
         self.omega_min = rospy.get_param("/" + self.veh_name +"/lane_controller_node/omega_min")
         self.omega_max = rospy.get_param("/" + self.veh_name + "/lane_controller_node/omega_max")
+
+        # Initialize buffer of theta_hat: this is gonna be used to keep track of its behavior
+        buffer = np.asarray([0.0, 0.0, 0.0, 0.0, 0.0])
 
         # Publication
         self.pub_corrected_car_cmd = rospy.Publisher("lane_controller_node/car_cmd", Twist2DStamped, queue_size=1)

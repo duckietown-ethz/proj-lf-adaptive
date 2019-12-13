@@ -1,11 +1,13 @@
 <launch>
 
 	<arg name="node_name" default="ac_node"/>
+	<arg name="gamma" default="0.05" doc="Porportional factor that correct the internal state of Adaptive Controller."/>
 
 	<include file="$(find adaptive_controller)/launch/lane_following.launch"/>
 
 	<group ns="$(env VEHICLE_NAME)">
     <node pkg="adaptive_controller" name="$(arg node_name)" type="$(arg node_name).py" output="screen">
+				<param name="gamma" type="float" value="$(arg gamma)"/>
     </node>
   </group>
 
