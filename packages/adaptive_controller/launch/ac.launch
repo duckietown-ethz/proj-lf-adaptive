@@ -7,7 +7,7 @@
 
 	<group ns="$(env VEHICLE_NAME)">
     <node pkg="adaptive_controller" name="$(arg node_name)" type="$(arg node_name).py" output="screen">
-				<param name="gamma" type="float" value="$(arg gamma)"/>
+				<param name="gamma" value="$(arg gamma)"/>
     </node>
   </group>
 
