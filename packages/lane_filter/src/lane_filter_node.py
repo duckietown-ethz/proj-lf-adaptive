@@ -31,7 +31,6 @@ class LaneFilterNode(object):
         # (basically applying a low pass filter)
         self.last_d = []
         self.last_phi = []
-
         self.veh_name = rospy.get_namespace().strip("/")
         self.omega_max = rospy.get_param("/" + self.veh_name + "/lane_controller_node/omega_max")
         self.omega_min = rospy.get_param("/" + self.veh_name +"/lane_controller_node/omega_min")
@@ -145,8 +144,8 @@ class LaneFilterNode(object):
         w = self.velocity.omega
 
         # ==== HERE THE UPPER BOUNDS ========
-        self.ub_d = dt * self.omega_max * self.gain * 1.5
-        self.ub_phi = dt * self.v_ref * self.gain * 1.5
+        ub_d = dt * self.omega_max * self.gain * 1000
+        ub_phi = dt * self.v_ref * self.gain * 1000
 
         self.filter.predict(dt=dt, v=v, w=w)
         self.t_last_update = current_time
@@ -191,7 +190,7 @@ class LaneFilterNode(object):
             rospy.loginfo("phi changed too much")
         if lanePose.phi - self.last_phi < -ub_phi :
             lanePose.phi = self.last_phi - ub_phi
-            ùrospy.loginfo("phi changed too much")
+            rospy.loginfo("phi changed too much")
 
         lanePose.in_lane = in_lane
         # XXX: is it always NORMAL?
@@ -203,7 +202,7 @@ class LaneFilterNode(object):
 
         self.pub_lane_pose.publish(lanePose)
 
-        # Save for next iteration
+        # Save for next iteration       <=========
         self.last_d = lanePose.d
         self.last_phi = lanePose.phi
 

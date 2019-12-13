@@ -1,13 +1,15 @@
 <launch>
 
 	<arg name="node_name" default="ac_node"/>
-	<arg name="gamma" default="0.05" doc="Porportional factor that correct the internal state of Adaptive Controller."/>
+	<arg name="gamma" default="0.1" doc="Porportional factor that correct the internal state of Adaptive Controller."/>
+	<arg name="error2use" default="0" doc="0 to use error on d; 1 to use error on phi."/>
 
 	<include file="$(find adaptive_controller)/launch/lane_following.launch"/>
 
 	<group ns="$(env VEHICLE_NAME)">
     <node pkg="adaptive_controller" name="$(arg node_name)" type="$(arg node_name).py" output="screen">
 				<param name="gamma" value="$(arg gamma)"/>
+				<param name="error2use" type="int" value="$(arg error2use)" />
     </node>
   </group>
 

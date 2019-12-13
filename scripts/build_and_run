@@ -8,6 +8,7 @@ export VEHNAME=andrew
 # BUILD
 # docker -H "$VEHNAME".local build -t proj-lf-adaptive:v1
 # dts devel build --ignore-watchtower -f --arch arm32v7 -H "$VEHNAME".local
+dts devel build -f --arch arm32v7 -H "$VEHNAME".local
 
 # RUN
 # docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:new_lane-arm32v7 /bin/bash

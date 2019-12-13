@@ -1,3 +1,4 @@
+# Nice params for lane controller
 
 rosparam set /andrew/lane_controller_node/omega_max 4.7
 rosparam set /andrew/lane_controller_node/omega_min -4.7
@@ -5,3 +6,11 @@ rosparam set /andrew/lane_controller_node/omega_min -4.7
 rosparam set /andrew/line_detector_node/top_cutoff 55
 
 rosparam set /andrew/lane_controller_node/k_d -3.0
+
+
+
+
+# Other tunable parameters
+rosparam set /andrew/lane_controller_node/ac_on false
+rosparam set /andrew/ac_node/error2use
+rosparam set /andrew/ac_node/gamma 0.05

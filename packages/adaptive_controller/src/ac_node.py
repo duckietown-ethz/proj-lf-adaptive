@@ -44,6 +44,12 @@ class AdaptiveControllerNode(DTROS):
         # V2: remove as much as possible all external params and replace them with self variables
         # self.gamma = 0.05
         self.gamma = rospy.get_param("~gamma")
+        # self.gamma = setupParameter("~gamma")
+
+        self.error2use = rospy.get_param("~error2use")
+        # self.error2use = setupParameter("~error2use")
+        if not self.error2use : self.log("Using error on d")
+        if self.error2use : self.log("Using error on phi")
 
         self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
@@ -68,7 +74,7 @@ class AdaptiveControllerNode(DTROS):
         self.omega_max = rospy.get_param("/" + self.veh_name + "/lane_controller_node/omega_max")
 
         # Initialize buffer of theta_hat: this is gonna be used to keep track of its behavior
-        buffer = np.asarray([0.0, 0.0, 0.0, 0.0, 0.0])
+        self.buffer = np.asarray([0.0, 0.0, 0.0, 0.0, 0.0])
 
         # Publication
         self.pub_corrected_car_cmd = rospy.Publisher("lane_controller_node/car_cmd", Twist2DStamped, queue_size=1)
@@ -115,6 +121,9 @@ class AdaptiveControllerNode(DTROS):
 
         if (Ts > 0.005) and (Ts < 0.5):
 
+            # Check for update on gamma
+            self.gamma = rospy.get_param("~gamma")
+
             # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
             # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
             gamma = self.gamma / Ts
@@ -140,10 +149,15 @@ class AdaptiveControllerNode(DTROS):
             # ub_d = self.ref_k[0]*Ts*2       # worst case scenario: bot moving perpendiculary to lane
             # ub_phi = self.omega_max*Ts*2    # bound if the angle changed too much
 
-            if np.absolute(delta_e) < ub_d :
+
+            # We want to avoid updating theta_hat when:
+            #   1 - the returned lane pose is too far from previuos enstimate (probably unreliable)
+            #   2 - when in curves (recgnize curves based on angular speed)
+            cond_on_err  = (np.absolute(delta_e) < ub)
+            if (np.any(cond_on_err)) and (car_cmd.omega < 2) :
 
                 # (4) : Update the Adaptation law
-                theta_hat_k_d = - self.gamma * self.e_k[0]
+                theta_hat_k_d = - self.gamma * self.e_k[self.error2use]
                 self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
                 # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
 
@@ -185,8 +199,21 @@ class AdaptiveControllerNode(DTROS):
         self.t_k_minus = self.t_k
         self.e_k_minus = self.e_k
 
-        #Update buffer of theta_hat
-        buffer = shift(buffer, 1, cval=self.theta_hat_k)
+
+        # Update buffer of theta_hat
+        self.buffer = shift(self.buffer, 1, cval=self.theta_hat_k)
+
+        # If theta hat is converging, then slowly reduce gamma
+        if ((np.amax(self.buffer) - np.amin(self.buffer) < self.thr_conv)) and (self.gamma>0.001) :
+            self.gamma = rospy.set_param("~gamma", self.gamma*0.6)
+            self.thr_conv = self.thr_conv*0.6
+
+
+        # For similar reason as above, we want to increase gamma in case theta_hat start converging to a very
+        #   different value from before (for instance because of a bump):
+        if ((np.amax(self.buffer) - np.amin(self.buffer) > 2.5*self.thr_conv)) and (self.gamma<15) :
+            self.gamma = rospy.set_param("~gamma", self.gamma*1.5)
+            self.thr_conv = self.thr_conv*1.8
 
 
         end_time = rospy.Time.now()
@@ -197,6 +224,12 @@ class AdaptiveControllerNode(DTROS):
 
     def actuator_limits_callback(self, msg):
         self.log('Actuator limit occurred')
+
+    # def setupParameter(self,param_name):
+    #     value = rospy.get_param(param_name)
+    #     rospy.set_param(param_name,value)   # Write to parameter server for transparancy
+    #     #rospy.loginfo("[%s] %s = %s " %(self.node_name,param_name,value))
+    #     return value
 
 
 
