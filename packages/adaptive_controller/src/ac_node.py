@@ -185,6 +185,9 @@ class AdaptiveControllerNode(DTROS):
         self.t_k_minus = self.t_k
         self.e_k_minus = self.e_k
 
+        #Update buffer of theta_hat
+        buffer = shift(buffer, 1, cval=self.theta_hat_k)
+
 
         end_time = rospy.Time.now()
         latency = end_time - start_time
