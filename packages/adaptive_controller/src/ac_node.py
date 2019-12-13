@@ -40,7 +40,7 @@ class AdaptiveControllerNode(DTROS):
         self.veh_name = rospy.get_namespace().strip("/")
 
         # V2: remove as much as possible all external params and replace them with self variables
-        self.gamma = 0.03
+        self.gamma = 0.05
 
         self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
@@ -59,6 +59,9 @@ class AdaptiveControllerNode(DTROS):
         # MAKE IT CLEANER: queste variabili non servono necessariamente, se non per tenere traccia dell'evoluzione
         #self.theta_hat_k_minus = self.theta_hat_k
         #self.ref_k_minus = self.ref_k
+
+        self.omega_min = rospy.get_param("/" + self.veh_name +"/lane_controller_node/omega_min")
+        self.omega_max = rospy.get_param("/" + self.veh_name + "/lane_controller_node/omega_max")
 
         # Publication
         self.pub_corrected_car_cmd = rospy.Publisher("lane_controller_node/car_cmd", Twist2DStamped, queue_size=1)
@@ -126,12 +129,14 @@ class AdaptiveControllerNode(DTROS):
             self.log("delta on error : %f" % delta_e[1])
 
             # Upper bounds for reasonable delta_e
-            ub_d = self.ref_k[0]*Ts*10000   # worst case scenario: bot moving perpendiculary to lane
+            ub = np.asarray([self.ref_k[0]*Ts*2, self.omega_max*Ts*2])
+            # ub_d = self.ref_k[0]*Ts*2       # worst case scenario: bot moving perpendiculary to lane
+            # ub_phi = self.omega_max*Ts*2    # bound if the angle changed too much
 
-            if abs(delta_e[0]) < ub_d:
+            if np.absolute(delta_e) < ub_d :
 
                 # (4) : Update the Adaptation law
-                theta_hat_k_d = - self.gamma * self.e_k[1]
+                theta_hat_k_d = - self.gamma * self.e_k[0]
                 self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
                 # self.theta_hat_k = self.theta_hat_k_minus + Ts * theta_hat_k_d
 
@@ -160,6 +165,9 @@ class AdaptiveControllerNode(DTROS):
 
             self.log("sample rejected!")
 
+        # Make sure omega is in the allowe range
+        if car_cmd_corrected.omega > self.omega_max: car_cmd_corrected.omega = self.omega_max
+        if car_cmd_corrected.omega < self.omega_min: car_cmd_corrected.omega = self.omega_min
 
         # Pubblish corrected command
         #car_cmd_corrected.v = 0.1

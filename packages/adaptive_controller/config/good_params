@@ -4,4 +4,4 @@ rosparam set /andrew/lane_controller_node/omega_min -4.7
 
 rosparam set /andrew/line_detector_node/top_cutoff 55
 
-/andrew/lane_controller_node/k_d -3.0
+rosparam set /andrew/lane_controller_node/k_d -3.0
