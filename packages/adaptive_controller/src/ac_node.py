@@ -51,6 +51,9 @@ class AdaptiveControllerNode(DTROS):
         if not self.error2use : self.log("Using error on d")
         if self.error2use : self.log("Using error on phi")
 
+        # Threshold to identify when param is converging
+        self.thr_conv = 0.035
+
         self.yp_k = np.asarray([0.0, 0.0])
         self.ym_k = self.yp_k
         self.t_k = rospy.Time.now()
