@@ -175,8 +175,11 @@ class AdaptiveControllerNode(DTROS):
             self.log("theta not updated!")
 
         # Make sure omega is in the allowe range
-        if car_cmd_corrected.omega > self.omega_max: car_cmd_corrected.omega = self.omega_max
-        if car_cmd_corrected.omega < self.omega_min: car_cmd_corrected.omega = self.omega_min
+        if car_cmd_corrected.omega > self.omega_max:
+        	car_cmd_corrected.omega = self.omega_max
+        	self.ac_rif_k.omega =  
+        if car_cmd_corrected.omega < self.omega_min: 
+        	car_cmd_corrected.omega = self.omega_min
 
         # Pubblish corrected command
         car_cmd_corrected.header.stamp = car_cmd.header.stamp
@@ -188,7 +191,7 @@ class AdaptiveControllerNode(DTROS):
         self.t_lane_pose_k_minus = self.t_lane_pose_k
         self.err_k_minus = self.err_k
         self.ac_rif_k_minus_2 = self.ac_rif_k_minus
-        self.ac_rif_k_minus = self.ac_rif_k
+        self.ac_rif_k_minus = car_cmd_corrected
 
 
         # Update buffer of theta_hat
