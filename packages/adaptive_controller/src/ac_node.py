@@ -191,7 +191,7 @@ class AdaptiveControllerNode(DTROS):
         self.t_lane_pose_k_minus = self.t_lane_pose_k
         self.err_k_minus = self.err_k
         self.ac_rif_k_minus_2 = self.ac_rif_k_minus
-        self.ac_rif_k_minus = car_cmd_corrected
+        self.ac_rif_k_minus = self.ac_rif_k
 
 
         # Update buffer of theta_hat
