@@ -1,0 +1,5 @@
+
+rosparam set /paperinik313/lane_controller_node/omega_max 4.7
+rosparam set /paperinik313/lane_controller_node/omega_min -4.7
+rosparam set /paperinik313/line_detector_node/top_cutoff 55
+rosparam set /paperinik313/lane_controller_node/k_d -3.0

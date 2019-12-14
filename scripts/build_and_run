@@ -1,19 +1,19 @@
 #!/bin/bash
 
-export VEHNAME=andrew
-#export VEHNAME=paperinik313
+#export VEHNAME=andrew
+export VEHNAME=paperinik313
 
 # NOTE: to make only run the container without rebuilding it, just run the run command
 
 # BUILD
 # docker -H "$VEHNAME".local build -t proj-lf-adaptive:v1
-# dts devel build --ignore-watchtower -f --arch arm32v7 -H "$VEHNAME".local
-dts devel build -f --arch arm32v7 -H "$VEHNAME".local
+dts devel build --ignore-watchtower -f --arch arm32v7 -H "$VEHNAME".local
 
 # RUN
-# docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:new_lane-arm32v7 /bin/bash
-docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:new_lane-arm32v7
-
+# RUN
+# docker -H "$VEHNAME".local run -it --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1
+docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:new_ac-arm32v7 /bin/bash
+# docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:v2_dbg-arm32v7
 
 #roslaunch adaptive_controller lane_following.launch
 
@@ -34,3 +34,5 @@ docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/pro
 #/paperinik313/lane_controller_node/k_d
 #/paperinik313/lane_controller_node/k_theta
 #/paperinik313/lane_controller_node/ac_on
+#/paperinik313/kinematics_node/gain
+#/paperinik313/kinematics_node/trim
