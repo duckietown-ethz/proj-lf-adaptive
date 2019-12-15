@@ -45,8 +45,7 @@ class AdaptiveControllerNode(DTROS):
         #if self.error2use : self.log("Using error on phi")
 
         # Threshold to identify when param is converging
-        self.thr_conv = 0.035
-
+        
         self.lane_pose_k_minus = np.asarray([0.0, 0.0])
         self.t_lane_pose_k_minus = rospy.Time.now().to_sec()
         self.lane_pose_k = np.asarray([0.0, 0.0])
@@ -210,16 +209,11 @@ class AdaptiveControllerNode(DTROS):
         self.past_theta_hats = np.append(self.past_theta_hats[1:],np.asarray(self.theta_hat_k))
 
         # If theta hat is converging, then slowly reduce gamma
-        if ((np.amax(self.past_theta_hats) - np.amin(self.past_theta_hats) < self.thr_conv)) and (self.gamma>0.001) :
-            self.gamma = rospy.set_param("~gamma", self.gamma*0.6)
-            self.thr_conv = self.thr_conv*0.6
-
+        
 
         # For similar reason as above, we want to increase gamma in case theta_hat start converging to a very
         #   different value from before (for instance because of a bump):
-        if ((np.amax(self.past_theta_hats) - np.amin(self.past_theta_hats) > 10*self.thr_conv)) and (self.gamma<15) :
-            self.gamma = rospy.set_param("~gamma", self.gamma*1.5)
-            self.thr_conv = self.thr_conv*1.8
+        
 
         # Update variables for next iteration
         self.lane_pose_k_minus = self.lane_pose_k
