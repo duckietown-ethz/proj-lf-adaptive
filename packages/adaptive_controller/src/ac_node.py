@@ -136,9 +136,6 @@ class AdaptiveControllerNode(DTROS):
         # Init message
         car_cmd_corrected = Twist2DStamped()
 
-        # Check for update on gamma
-        self.gamma = rospy.get_param("~gamma")
-
         # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
         # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
         #gamma = self.gamma / Ts
@@ -159,7 +156,8 @@ class AdaptiveControllerNode(DTROS):
             self.lane_pose_k_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts
 
             # (3) : Calculate e
-            self.err_k =  self.lane_pose_k - self.lane_pose_k_predicted
+            self.err_k[0] =  self.lane_pose_k[0] - self.lane_pose_k_predicted[0]
+            self.err_k[1] =  self.lane_pose_k[1] - self.lane_pose_k_predicted[1]
             self.log("actual d: %f" % self.lane_pose_k[0])
             self.log("predicted d: %f" %  self.lane_pose_k_predicted[0])
             self.log("error on d: %f" % self.err_k[0])
@@ -181,7 +179,10 @@ class AdaptiveControllerNode(DTROS):
             #   1 - the returned lane pose is too far from previuos enstimate (probably unreliable)
             #   2 - when in curves (recgnize curves based on angular speed)
             cond_on_err  = (np.absolute(delta_e) < ub)
-            if (np.any(cond_on_err)) and (car_cmd.omega < 2) :
+            if (np.any(cond_on_err)) :
+                self.error2use = rospy.get_param("~error2use")
+                # Check for update on gamma
+                self.gamma = rospy.get_param("~gamma")
 
                 # (4) : Update the Adaptation law
                 theta_hat_k_d = - self.gamma * self.err_k[self.error2use] #default 0, use error on d
