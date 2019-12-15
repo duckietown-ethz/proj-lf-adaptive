@@ -54,22 +54,12 @@ class AdaptiveControllerNode(DTROS):
         self.lane_pose_b_predicted = np.asarray([0.0, 0.0])
         self.lane_pose_k_predicted = np.asarray([0.0, 0.0])
 
-        #self.t_last_wheel_cmds = rospy.Time.now().to_sec()*np.ones(10)
-        #self.t_wheel_cmd_selected =  rospy.Time.now().to_sec()
-
         self.theta_hat_k = 0.0
         self.ac_rif_k = np.asarray([0.0, 0.0])
         self.ac_rif_k_minus = np.asarray([0.0, 0.0])
         self.ac_rif_k_minus_2 = np.asarray([0.0, 0.0])
         self.err_k = np.asarray([0.0, 0.0])
         self.err_k_minus = np.asarray([0.0, 0.0]) 
-
-
-        # self.car_cmd_corrected.v = 0.0
-        # self.car_cmd_corrected.omega = 0.0
-
-        # MAKE IT CLEANER: queste variabili non servono necessariamente, se non per tenere traccia dell'evoluzione
-        #self.theta_hat_lane_pose_k_minus = self.theta_hat_lane_pose_k
 
         # Make sure that that the commanded speed is in the allowable range
         self.omega_min = rospy.get_param("/" + self.veh_name +"/lane_controller_node/omega_min")
@@ -85,14 +75,9 @@ class AdaptiveControllerNode(DTROS):
         self.sub_lane_readin = rospy.Subscriber("lane_filter_node/lane_pose", LanePose, self.getPose, queue_size=1)
         self.sub_car_cmd_ac_rif = rospy.Subscriber("lane_controller_node/ac_rif", Twist2DStamped, self.correctCommand, queue_size=1)
         self.sub_actuator_limits = rospy.Subscriber("lane_controller_node/actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
-        #self.sub_wheels_cmd = rospy.Subscriber("wheels_driver_node/wheels_cmd", Twist2DStamped, self.set_time_wheels_cmd, queue_size=1)
-        #don't know why callback doesn't work
-
+        
         self.log("Initialized")
-
-    def set_time_wheels_cmd(self, msg):
-        self.t_last_wheel_cmd = np.asarray(rospy.Time.now().to_sec())
-
+    
     def getPose(self, poseMsg):
         self.lane_pose_k = np.asarray([poseMsg.d, poseMsg.phi])
 
@@ -112,22 +97,7 @@ class AdaptiveControllerNode(DTROS):
         self.t_lane_pose_k = self.t_lane_pose_k.to_sec()
 
         # (1) : Compute sampling time
-        '''
-        self.t_wheel_cmd_selected = self.t_last_wheel_cmds[self.t_last_wheel_cmds>self.t_lane_pose_k_minus][0]
-        self.t_wheel_cmd_selected = self.t_wheel_cmd_selected.astype(float)
-
-        self.log("t_last_wheel_cmd: %f" % self.t_wheel_cmd_selected)
-        self.log("t_lane_pose_k_minus: %f" % self.t_lane_pose_k_minus)
-        self.log("t_lane_pose_k: %f" % self.t_lane_pose_k)
-
-        T_ab = self.t_wheel_cmd_selected - self.t_lane_pose_k_minus
-        T_bc = self.t_lane_pose_k - self.t_wheel_cmd_selected
-                
-        Ts = T_ab + T_bc #self.t_lane_pose_k - self.t_lane_pose_k_minus
-        self.log("T_ab: %f" % T_ab)
-        self.log("T_bc: %f" % T_bc)
-        self.log("Ts: %f" % Ts)
-        '''
+        
         Ts = self.t_lane_pose_k - self.t_lane_pose_k_minus
         self.log("Ts: %f" % Ts)
 
@@ -139,19 +109,9 @@ class AdaptiveControllerNode(DTROS):
 
         # Check for update on gamma
         self.gamma = rospy.get_param("~gamma")
-
-        # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
-        # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
-        #gamma = self.gamma / Ts
-		#gamma = self.gamma
-
+        
         # (2) : Predict current ym based on previus yp, reference and Ts
         
-        #self.lane_pose_b_predicted[0] = self.lane_pose_k_minus[0] + self.ac_rif_k_minus_2[0] * T_ab * math.sin(self.lane_pose_k_minus[1] + self.ac_rif_k_minus_2[1] * T_ab * 0.5)
-        #self.lane_pose_b_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus_2[1] * T_ab
-        
-        #self.lane_pose_k_predicted[0] = self.lane_pose_b_predicted[0] + self.ac_rif_k_minus[0] * T_bc * math.sin(self.lane_pose_b_predicted[1] + self.ac_rif_k_minus[1] * T_bc * 0.5)
-        #self.lane_pose_k_predicted[1] = self.lane_pose_b_predicted[1] + self.ac_rif_k_minus[1] * T_bc
         if Ts >0.025 and Ts < 0.2:
         	self.lane_pose_k_predicted[0] = self.lane_pose_k_minus[0] + self.ac_rif_k_minus[0] * Ts * math.sin(self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts * 0.5)
 	        self.lane_pose_k_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts
@@ -169,10 +129,7 @@ class AdaptiveControllerNode(DTROS):
 
 	        # Upper bounds for reasonable delta_e
 	        ub = np.asarray([self.ac_rif_k[0]*Ts*2, self.omega_max*Ts*2])
-	        # ub_d = self.ac_rif_k[0]*Ts*2       # worst case scenario: bot moving perpendiculary to lane
-	        # ub_phi = self.omega_max*Ts*2    # bound if the angle changed too much
-
-
+	        
 	        # We want to avoid updating theta_hat when:
 	        #   1 - the returned lane pose is too far from previuos enstimate (probably unreliable)
 	        #   2 - when in curves (recgnize curves based on angular speed)
@@ -223,7 +180,6 @@ class AdaptiveControllerNode(DTROS):
         self.ac_rif_k_minus_2 = self.ac_rif_k_minus
         self.ac_rif_k_minus = self.ac_rif_k
         self.gamma = rospy.set_param("~gamma", 0.1)
-        #self.t_last_wheel_cmds = np.append(self.t_last_wheel_cmds, np.asarray(rospy.Time.now().to_sec()))
         
         
     def actuator_limits_callback(self, msg):
