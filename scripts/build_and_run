@@ -37,3 +37,6 @@ docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/pro
 #/paperinik313/lane_controller_node/ac_on
 #/paperinik313/kinematics_node/gain
 #/paperinik313/kinematics_node/trim
+
+# optimal trim paperinik313
+#rosparam set /paperinik313/kinematics_node/trim -0.0375

@@ -75,8 +75,8 @@ class AdaptiveControllerNode(DTROS):
         self.omega_min = rospy.get_param("/" + self.veh_name +"/lane_controller_node/omega_min")
         self.omega_max = rospy.get_param("/" + self.veh_name + "/lane_controller_node/omega_max")
 
-        # Initialize buffer of theta_hat: this is gonna be used to keep track of its behavior
-        self.buffer = np.asarray([0.0, 0.0, 0.0, 0.0, 0.0])
+        # Initialize past_theta_hats of theta_hat: this is gonna be used to keep track of its behavior
+        self.past_theta_hats = np.zeros(100)
 
         # Publication
         self.pub_corrected_car_cmd = rospy.Publisher("lane_controller_node/car_cmd", Twist2DStamped, queue_size=1)
@@ -152,40 +152,45 @@ class AdaptiveControllerNode(DTROS):
         
         #self.lane_pose_k_predicted[0] = self.lane_pose_b_predicted[0] + self.ac_rif_k_minus[0] * T_bc * math.sin(self.lane_pose_b_predicted[1] + self.ac_rif_k_minus[1] * T_bc * 0.5)
         #self.lane_pose_k_predicted[1] = self.lane_pose_b_predicted[1] + self.ac_rif_k_minus[1] * T_bc
-        if Ts >0.025 and Ts < 0.2:
-        	self.lane_pose_k_predicted[0] = self.lane_pose_k_minus[0] + self.ac_rif_k_minus[0] * Ts * math.sin(self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts * 0.5)
-	        self.lane_pose_k_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts
+        
+        #filter out TS too big or too small 
+        #do not update theta in curves omega accepted -1.0<omega< +1.0
+        if Ts >0.025 and Ts < 0.2 and car_cmd.omega < 1.0 and car_cmd.omega > -1.0: 
+            self.lane_pose_k_predicted[0] = self.lane_pose_k_minus[0] + self.ac_rif_k_minus[0] * Ts * math.sin(self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts * 0.5)
+            self.lane_pose_k_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts
 
-	        # (3) : Calculate e
-	        self.err_k =  self.lane_pose_k - self.lane_pose_k_predicted
+            # (3) : Calculate e
+            self.err_k =  self.lane_pose_k - self.lane_pose_k_predicted
+            self.log("actual d: %f" % self.lane_pose_k[0])
+            self.log("predicted d: %f" %  self.lane_pose_k_predicted[0])
+            self.log("error on d: %f" % self.err_k[0])
+            self.log("actual phi: %f" % self.lane_pose_k[1])
+            self.log("predicted phi: %f" % self.lane_pose_k_predicted[1])
+            self.log("error on phi: %f" % self.err_k[1])
 
-	        #self.log("omega rif : %f" % car_cmd.omega)
-	        self.log("error on d: %f" % self.err_k[0])
-	        self.log("error on phi: %f" % self.err_k[1])
+            # Check variance of pose
+            delta_e = self.err_k -self.err_k_minus
+            #self.log("delta on error : %f" % delta_e[1])
 
-	        # Check variance of pose
-	        delta_e = self.err_k -self.err_k_minus
-	        #self.log("delta on error : %f" % delta_e[1])
-
-	        # Upper bounds for reasonable delta_e
-	        ub = np.asarray([self.ac_rif_k[0]*Ts*2, self.omega_max*Ts*2])
-	        # ub_d = self.ac_rif_k[0]*Ts*2       # worst case scenario: bot moving perpendiculary to lane
-	        # ub_phi = self.omega_max*Ts*2    # bound if the angle changed too much
+            # Upper bounds for reasonable delta_e
+            ub = np.asarray([self.ac_rif_k[0]*Ts*2, self.omega_max*Ts*2])
+            # ub_d = self.ac_rif_k[0]*Ts*2       # worst case scenario: bot moving perpendiculary to lane
+            # ub_phi = self.omega_max*Ts*2    # bound if the angle changed too much
 
 
-	        # We want to avoid updating theta_hat when:
-	        #   1 - the returned lane pose is too far from previuos enstimate (probably unreliable)
-	        #   2 - when in curves (recgnize curves based on angular speed)
-	        cond_on_err  = (np.absolute(delta_e) < ub)
-	        if (np.any(cond_on_err)) and (car_cmd.omega < 2) :
+            # We want to avoid updating theta_hat when:
+            #   1 - the returned lane pose is too far from previuos enstimate (probably unreliable)
+            #   2 - when in curves (recgnize curves based on angular speed)
+            cond_on_err  = (np.absolute(delta_e) < ub)
+            if (np.any(cond_on_err)) and (car_cmd.omega < 2) :
 
-	            # (4) : Update the Adaptation law
-	            theta_hat_k_d = - self.gamma * self.err_k[self.error2use] #default 0, use error on d
-	            self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
-	            self.log("gamma : %f" % self.gamma)
-	            self.log("theta_hat_k : %f" % self.theta_hat_k)
-	        else:
-	        	self.log("theta not updated!")
+                # (4) : Update the Adaptation law
+                theta_hat_k_d = - self.gamma * self.err_k[self.error2use] #default 0, use error on d
+                self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
+                self.log("gamma : %f" % self.gamma)
+                self.log("theta_hat_k : %f" % self.theta_hat_k)
+            else:
+                self.log("theta not updated!")
 
 	    # (5) : Compute corrected control command
         car_cmd_corrected.v = self.ac_rif_k[0]
@@ -201,18 +206,18 @@ class AdaptiveControllerNode(DTROS):
 
         self.pub_corrected_car_cmd.publish(car_cmd_corrected)
 
-        # Update buffer of theta_hat
-        self.buffer = shift(self.buffer, 1, cval=self.theta_hat_k)
+        # Shift buffer and add last theta_hat_k
+        self.past_theta_hats = np.append(self.past_theta_hats[1:],np.asarray(self.theta_hat_k))
 
         # If theta hat is converging, then slowly reduce gamma
-        if ((np.amax(self.buffer) - np.amin(self.buffer) < self.thr_conv)) and (self.gamma>0.001) :
+        if ((np.amax(self.past_theta_hats) - np.amin(self.past_theta_hats) < self.thr_conv)) and (self.gamma>0.001) :
             self.gamma = rospy.set_param("~gamma", self.gamma*0.6)
             self.thr_conv = self.thr_conv*0.6
 
 
         # For similar reason as above, we want to increase gamma in case theta_hat start converging to a very
         #   different value from before (for instance because of a bump):
-        if ((np.amax(self.buffer) - np.amin(self.buffer) > 10*self.thr_conv)) and (self.gamma<15) :
+        if ((np.amax(self.past_theta_hats) - np.amin(self.past_theta_hats) > 10*self.thr_conv)) and (self.gamma<15) :
             self.gamma = rospy.set_param("~gamma", self.gamma*1.5)
             self.thr_conv = self.thr_conv*1.8
 
@@ -222,8 +227,7 @@ class AdaptiveControllerNode(DTROS):
         self.err_k_minus = self.err_k
         self.ac_rif_k_minus_2 = self.ac_rif_k_minus
         self.ac_rif_k_minus = self.ac_rif_k
-        self.gamma = rospy.set_param("~gamma", 0.1)
-        #self.t_last_wheel_cmds = np.append(self.t_last_wheel_cmds, np.asarray(rospy.Time.now().to_sec()))
+        #self.t_last_wheel_cmds = np.append(self.t_last_wheel_cmds[1:], np.asarray(rospy.Time.now().to_sec()))
         
         
     def actuator_limits_callback(self, msg):
