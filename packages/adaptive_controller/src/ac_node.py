@@ -48,17 +48,22 @@ class AdaptiveControllerNode(DTROS):
         self.thr_conv = 0.035
 
         self.lane_pose_k_minus = np.asarray([0.0, 0.0])
-        self.t_lane_pose_k_minus = 0.0
+        self.t_lane_pose_k_minus = rospy.Time.now().to_sec()
         self.lane_pose_k = np.asarray([0.0, 0.0])
-        self.t_lane_pose_k = 0.0
+        self.t_lane_pose_k = rospy.Time.now().to_sec()
+        self.lane_pose_b_predicted = np.asarray([0.0, 0.0])
+        self.lane_pose_k_predicted = np.asarray([0.0, 0.0])
 
-        self.t_last_wheel_cmd_executed = 0.0
+        #self.t_last_wheel_cmds = rospy.Time.now().to_sec()*np.ones(10)
+        #self.t_wheel_cmd_selected =  rospy.Time.now().to_sec()
 
-        self.theta_hat_lane_pose_k = 0.0
+        self.theta_hat_k = 0.0
         self.ac_rif_k = np.asarray([0.0, 0.0])
         self.ac_rif_k_minus = np.asarray([0.0, 0.0])
         self.ac_rif_k_minus_2 = np.asarray([0.0, 0.0])
         self.err_k = np.asarray([0.0, 0.0])
+        self.err_k_minus = np.asarray([0.0, 0.0]) 
+
 
         # self.car_cmd_corrected.v = 0.0
         # self.car_cmd_corrected.omega = 0.0
@@ -80,17 +85,16 @@ class AdaptiveControllerNode(DTROS):
         self.sub_lane_readin = rospy.Subscriber("lane_filter_node/lane_pose", LanePose, self.getPose, queue_size=1)
         self.sub_car_cmd_ac_rif = rospy.Subscriber("lane_controller_node/ac_rif", Twist2DStamped, self.correctCommand, queue_size=1)
         self.sub_actuator_limits = rospy.Subscriber("lane_controller_node/actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
-        self.sub_wheels_cmd_executed = rospy.Subscriber("wheels_driver_node/wheels_cmd_executed", Twist2DStamped, self.set_time_cmd_executed, queue_size=1)
+        #self.sub_wheels_cmd = rospy.Subscriber("wheels_driver_node/wheels_cmd", Twist2DStamped, self.set_time_wheels_cmd, queue_size=1)
+        #don't know why callback doesn't work
 
         self.log("Initialized")
 
-    def set_time_cmd_executed(self, msg):
-        self.t_last_wheel_cmd_executed = rospy.Time.now()
+    def set_time_wheels_cmd(self, msg):
+        self.t_last_wheel_cmd = np.asarray(rospy.Time.now().to_sec())
 
     def getPose(self, poseMsg):
         self.lane_pose_k = np.asarray([poseMsg.d, poseMsg.phi])
-        self.t_lane_pose_k = poseMsg.header.stamp
-
 
     def correctCommand(self, car_cmd):
 
@@ -101,16 +105,31 @@ class AdaptiveControllerNode(DTROS):
         #   4) Update the Adaptation law (now up to present time)
         #   5) Compute corrected control command
 
-        self.log("==============================================")
+        self.log("======================================")
 
+
+        self.t_lane_pose_k = car_cmd.header.stamp
+        self.t_lane_pose_k = self.t_lane_pose_k.to_sec()
 
         # (1) : Compute sampling time
+        '''
+        self.t_wheel_cmd_selected = self.t_last_wheel_cmds[self.t_last_wheel_cmds>self.t_lane_pose_k_minus][0]
+        self.t_wheel_cmd_selected = self.t_wheel_cmd_selected.astype(float)
 
-        T_ab = self.t_last_wheel_cmd_executed - self.t_lane_pose_k_minus
-        T_bc = self.t_lane_pose_k - self.t_last_wheel_cmd_executed
-        T_ab = T_ab.to_sec()
-        T_bc = T_bc.to_sec()
+        self.log("t_last_wheel_cmd: %f" % self.t_wheel_cmd_selected)
+        self.log("t_lane_pose_k_minus: %f" % self.t_lane_pose_k_minus)
+        self.log("t_lane_pose_k: %f" % self.t_lane_pose_k)
+
+        T_ab = self.t_wheel_cmd_selected - self.t_lane_pose_k_minus
+        T_bc = self.t_lane_pose_k - self.t_wheel_cmd_selected
+                
         Ts = T_ab + T_bc #self.t_lane_pose_k - self.t_lane_pose_k_minus
+        self.log("T_ab: %f" % T_ab)
+        self.log("T_bc: %f" % T_bc)
+        self.log("Ts: %f" % Ts)
+        '''
+        Ts = self.t_lane_pose_k - self.t_lane_pose_k_minus
+        self.log("Ts: %f" % Ts)
 
         # Car message from PI controller
         self.ac_rif_k = np.asarray([car_cmd.v, car_cmd.omega])
@@ -124,24 +143,28 @@ class AdaptiveControllerNode(DTROS):
         # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
         # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
         #gamma = self.gamma / Ts
-		gamma = self.gamma
+		#gamma = self.gamma
 
         # (2) : Predict current ym based on previus yp, reference and Ts
-
+        '''
         self.lane_pose_b_predicted[0] = self.lane_pose_k_minus[0] + self.ac_rif_k_minus_2[0] * T_ab * math.sin(self.lane_pose_k_minus[1] + self.ac_rif_k_minus_2[1] * T_ab * 0.5)
         self.lane_pose_b_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus_2[1] * T_ab
         
         self.lane_pose_k_predicted[0] = self.lane_pose_b_predicted[0] + self.ac_rif_k_minus[0] * T_bc * math.sin(self.lane_pose_b_predicted[1] + self.ac_rif_k_minus[1] * T_bc * 0.5)
         self.lane_pose_k_predicted[1] = self.lane_pose_b_predicted[1] + self.ac_rif_k_minus[1] * T_bc
+		'''
+		self.lane_pose_k_predicted[0] = self.lane_pose_k_minus[0] + self.ac_rif_k_minus[0] * Ts * math.sin(self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts * 0.5)
+        self.lane_pose_k_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts
 
         # (3) : Calculate e
         self.err_k =  self.lane_pose_k - self.lane_pose_k_predicted
 
         #self.log("omega rif : %f" % car_cmd.omega)
-        #self.log("error : %f" % self.e_k[1])
+        self.log("error on d: %f" % self.err_k[0])
+        self.log("error on phi: %f" % self.err_k[1])
 
         # Check variance of pose
-        delta_e = self.e_k -self.e_k_minus
+        delta_e = self.err_k -self.err_k_minus
         #self.log("delta on error : %f" % delta_e[1])
 
         # Upper bounds for reasonable delta_e
@@ -157,9 +180,9 @@ class AdaptiveControllerNode(DTROS):
         if (np.any(cond_on_err)) and (car_cmd.omega < 2) :
 
             # (4) : Update the Adaptation law
-            theta_hat_k_d = - self.gamma * self.e_k[self.error2use] #default 0, use error on d
+            theta_hat_k_d = - self.gamma * self.err_k[self.error2use] #default 0, use error on d
             self.theta_hat_k = self.theta_hat_k + Ts * theta_hat_k_d
-
+            self.log("gamma : %f" % self.gamma)
             self.log("theta_hat_k : %f" % self.theta_hat_k)
 
             # (5) : Compute corrected control command
@@ -177,25 +200,16 @@ class AdaptiveControllerNode(DTROS):
         # Make sure omega is in the allowe range
         if car_cmd_corrected.omega > self.omega_max:
         	car_cmd_corrected.omega = self.omega_max
-        	self.ac_rif_k.omega =  
         if car_cmd_corrected.omega < self.omega_min: 
         	car_cmd_corrected.omega = self.omega_min
 
-        # Pubblish corrected command
+        # Publish corrected command
         car_cmd_corrected.header.stamp = car_cmd.header.stamp
 
         self.pub_corrected_car_cmd.publish(car_cmd_corrected)
 
-        # Update variables for next iteration
-        self.lane_pose_k_minus = self.lane_pose_k
-        self.t_lane_pose_k_minus = self.t_lane_pose_k
-        self.err_k_minus = self.err_k
-        self.ac_rif_k_minus_2 = self.ac_rif_k_minus
-        self.ac_rif_k_minus = self.ac_rif_k
-
-
         # Update buffer of theta_hat
-        self.buffer = shift(self.buffer, 1, cval=self.theta_hat_lane_pose_k)
+        self.buffer = shift(self.buffer, 1, cval=self.theta_hat_k)
 
         # If theta hat is converging, then slowly reduce gamma
         if ((np.amax(self.buffer) - np.amin(self.buffer) < self.thr_conv)) and (self.gamma>0.001) :
@@ -209,15 +223,23 @@ class AdaptiveControllerNode(DTROS):
             self.gamma = rospy.set_param("~gamma", self.gamma*1.5)
             self.thr_conv = self.thr_conv*1.8
 
-
+        # Update variables for next iteration
+        self.lane_pose_k_minus = self.lane_pose_k
+        self.t_lane_pose_k_minus = self.t_lane_pose_k
+        self.err_k_minus = self.err_k
+        self.ac_rif_k_minus_2 = self.ac_rif_k_minus
+        self.ac_rif_k_minus = self.ac_rif_k
+        self.gamma = rospy.set_param("~gamma", 0.1)
+        #self.t_last_wheel_cmds = np.append(self.t_last_wheel_cmds, np.asarray(rospy.Time.now().to_sec()))
+        
         
     def actuator_limits_callback(self, msg):
         self.log('Actuator limit occurred')
 
-   	def onShutdown(self):
-        """Shutdown procedure.
-            Save yaml file with new trim value.
-        """
+    def onShutdown(self):
+        #Shutdown procedure.
+        #Save yaml file with new trim value.
+        
         #INITIALIZATION FOR YAML FILE SAVE
         # Add the node parameters to the parameters dictionary and load their default values
         self.parameters = {}
@@ -226,7 +248,6 @@ class AdaptiveControllerNode(DTROS):
         self.parameters = self.readParamFromFile()
         
         self.SaveCalibration() #create new calibration file
-        self.updateParameters()
 
         super(AdaptiveControllerNode, self).onShutdown()
 
@@ -237,12 +258,17 @@ class AdaptiveControllerNode(DTROS):
         Args:
             None
         """
+        v_bar_param_name = "/" + self.veh_name + "/lane_controller_node/v_bar"
+        v_bar = rospy.get_param(v_bar_param_name)
+
+      	new_trim = - (np.asarray(self.theta_hat_k)*np.asarray(self.parameters['baseline'])*np.asarray(self.parameters['gain']))/(2.0*np.asarray(v_bar))
         
-        new_trim = - (np.asarray(self.theta_hat_lane_pose_k)*np.asarray(self.parameters['baseline'])*np.asarray(self.parameters['gain']))/(2.0*np.asarray(self.ac_rif_k[0]))
         # Write to a yaml file
         new_trim = self.parameters['trim'] + round(new_trim.astype(float),4)
-        param_name = "/" + self.veh_name + "/kinematics_node/trim"     
-        rospy.set_param(param_name, new_trim)
+        if new_trim > 0.25 or new_trim < -0.25 :
+        	new_trim = 0.0
+        trim_param_name = "/" + self.veh_name + "/kinematics_node/trim"     
+        rospy.set_param(trim_param_name, new_trim)
 
         data = {
             "calibration_time": time.strftime("%Y-%m-%d-%H-%M-%S"),
