@@ -168,12 +168,12 @@ class AdaptiveControllerNode(DTROS):
                 self.log("theta_hat_k : %f" % self.theta_hat_k)
 
                 # (5) : Compute corrected control command
-                # car_cmd_corrected.v = self.ref_k[0]
-                # car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
+                car_cmd_corrected.v = self.ref_k[0]
+                car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
 
             else:
-                # car_cmd_corrected.v = self.ref_k[0]
-                # car_cmd_corrected.omega = self.ref_k[1]
+                car_cmd_corrected.v = self.ref_k[0]
+                car_cmd_corrected.omega = self.ref_k[1]
 
                 self.log("sample rejected!")
 
@@ -185,14 +185,10 @@ class AdaptiveControllerNode(DTROS):
             # If the sampling time between two frames is to short, ignore the sample as it
             # probably is unreliable.
 
-            # car_cmd_corrected.v = car_cmd.v
-            # car_cmd_corrected.omega = car_cmd.omega
+            car_cmd_corrected.v = car_cmd.v
+            car_cmd_corrected.omega = car_cmd.omega
 
             self.log("sample rejected!")
-
-
-        car_cmd_corrected.v = car_cmd.v
-        car_cmd_corrected.omega = car_cmd.omega + self.theta_hat_k
 
         # Make sure omega is in the allowe range
         if car_cmd_corrected.omega > self.omega_max: car_cmd_corrected.omega = self.omega_max

@@ -54,15 +54,13 @@ class AdaptiveControllerNode(DTROS):
         # Threshold to identify when param is converging
         self.thr_conv = 0.035
 
-        self.yp_k = np.asarray([0.0, 0.0])
-        self.ym_k = self.yp_k
-        self.t_k = rospy.Time.now()
+        self.yp_k = np.asarray([0.0, 0.0, 0.0])
+        self.ym_k = self.yp_k[0:1]
         self.theta_hat_k = 0.0
-        self.ref_k = np.asarray([0.0, 0.0])
+        self.ref_k = np.asarray([0.0, 0.0, 0.0])
         self.e_k = np.asarray([0.0, 0.0])
 
-        self.yp_k_minus = self.yp_k
-        self.t_k_minus = self.t_k
+        self.yp_k_minus = self.yp_k[0:1]
         self.e_k_minus = self.e_k
 
         # self.car_cmd_corrected.v = 0.0
@@ -93,8 +91,8 @@ class AdaptiveControllerNode(DTROS):
         d = poseMsg.d
         phi = poseMsg.phi
 
-        self.yp_k = np.asarray([d, phi])
-        self.t_k = poseMsg.header.stamp
+        yp_k = np.asarray([d, phi, poseMsg.header.stamp])
+        self.yp_k = np.vstack((self.yp_k, yp_k))
 
 
     def correctCommand(self, car_cmd):
@@ -106,31 +104,37 @@ class AdaptiveControllerNode(DTROS):
         #   4) Update the Adaptation law (now up to present time)
         #   5) Compute corrected control command
 
-        self.log("==============================================")
-
         start_time = rospy.Time.now()
 
-        # (1) : Compute sampling time
-        Ts = self.t_k - self.t_k_minus
-        #Ts = rospy.Time.to_sec(Ts)
+        stamp = car_cmd.header.stamp
+
+        # If we still have the same car command, we don't want to update
+        if stamp == self.ref_k[2] :
+            return
+
+        l_idx = np.where(stamp == self.yp_k[:,-1])
+        if l_idx :
+            return
+
+        Ts = rospy.Time.now() - stamp
         Ts = Ts.to_sec()
         self.log("Ts : %f" % Ts)
 
-        # Car message from PI controller
-        # self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
+        idx = l_idx[0]
+        yp_k = self.yp_k[idx, 0:1]
 
         # Init message
         car_cmd_corrected = Twist2DStamped()
 
-        if (Ts > 0.005) and (Ts < 0.5):
+        if (Ts > 0.005) and (Ts < 0.8):
 
-            # Check for update on gamma
+            # Check for update on gamma and error to use
             self.gamma = rospy.get_param("~gamma")
             self.error2use = rospy.get_param("~error2use")
 
             # The error e is proportional on the sampling time Ts, so the multiplicative constant gamma that multiply
             # e to obtain the correction of the inputs to the motors should be corrected by some factor of Ts
-            gamma = self.gamma / Ts
+            # gamma = self.gamma / Ts
 
             # (2) : Predict current ym based on previus yp, reference and Ts
             self.ym_k[0] = self.yp_k_minus[0] + self.ref_k[0] * Ts * math.sin(self.yp_k_minus[1] + self.ref_k[1] * Ts * 0.5)
@@ -139,7 +143,7 @@ class AdaptiveControllerNode(DTROS):
             # self.ym_k[1] = self.yp_k_minus[1] + self.ref_k_minus[1] * Ts
 
             # (3) : Calculate e
-            self.e_k =  self.yp_k - self.ym_k
+            self.e_k =  yp_k - self.ym_k
 
             self.log("omega rif : %f" % car_cmd.omega)
             self.log("error : %f" % self.e_k[1])
@@ -158,7 +162,7 @@ class AdaptiveControllerNode(DTROS):
             #   1 - the returned lane pose is too far from previuos enstimate (probably unreliable)
             #   2 - when in curves (recgnize curves based on angular speed)
             cond_on_err  = (np.absolute(delta_e) < ub)
-            if (np.any(cond_on_err)) and (car_cmd.omega < 2) :
+            if (np.any(cond_on_err)) and (car_cmd.omega < 1.5) :
 
                 # (4) : Update the Adaptation law
                 theta_hat_k_d = - self.gamma * self.e_k[self.error2use]
@@ -168,12 +172,11 @@ class AdaptiveControllerNode(DTROS):
                 self.log("theta_hat_k : %f" % self.theta_hat_k)
 
                 # (5) : Compute corrected control command
-                # car_cmd_corrected.v = self.ref_k[0]
-                # car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
-
+                car_cmd_corrected.v = self.ref_k[0]
+                car_cmd_corrected.omega = self.ref_k[1] + self.theta_hat_k
             else:
-                # car_cmd_corrected.v = self.ref_k[0]
-                # car_cmd_corrected.omega = self.ref_k[1]
+                car_cmd_corrected.v = self.ref_k[0]
+                car_cmd_corrected.omega = self.ref_k[1]
 
                 self.log("sample rejected!")
 
@@ -185,14 +188,10 @@ class AdaptiveControllerNode(DTROS):
             # If the sampling time between two frames is to short, ignore the sample as it
             # probably is unreliable.
 
-            # car_cmd_corrected.v = car_cmd.v
-            # car_cmd_corrected.omega = car_cmd.omega
+            car_cmd_corrected.v = self.ref_k[0]
+            car_cmd_corrected.omega = self.ref_k[1]
 
             self.log("sample rejected!")
-
-
-        car_cmd_corrected.v = car_cmd.v
-        car_cmd_corrected.omega = car_cmd.omega + self.theta_hat_k
 
         # Make sure omega is in the allowe range
         if car_cmd_corrected.omega > self.omega_max: car_cmd_corrected.omega = self.omega_max
@@ -200,30 +199,28 @@ class AdaptiveControllerNode(DTROS):
 
         # Pubblish corrected command
         #car_cmd_corrected.v = 0.1
+        car_cmd_corrected.header = car_cmd.header
         self.pub_corrected_car_cmd.publish(car_cmd_corrected)
 
         # Update variables for next iteration
-        self.yp_k_minus = self.yp_k
-        self.t_k_minus = self.t_k
+        self.ref_k = np.asarray([car_cmd.v, car_cmd.omega, car_cmd.header.stamp])
+        self.yp_k_minus = yp_k
         self.e_k_minus = self.e_k
-
-        self.ref_k = np.asarray([car_cmd.v, car_cmd.omega])
 
 
         # Update buffer of theta_hat
         self.buffer = shift(self.buffer, 1, cval=self.theta_hat_k)
 
         # If theta hat is converging, then slowly reduce gamma
-        # if ((np.amax(self.buffer) - np.amin(self.buffer) < self.thr_conv)) and (self.gamma>0.001) :
-        #     self.gamma = rospy.set_param("~gamma", self.gamma*0.6)
-        #     self.thr_conv = self.thr_conv*0.6
-
+        if ((np.amax(self.buffer) - np.amin(self.buffer) < self.thr_conv)) and (self.gamma>0.001) :
+            self.gamma = rospy.set_param("~gamma", self.gamma*0.6)
+            self.thr_conv = self.thr_conv*0.6
 
         # For similar reason as above, we want to increase gamma in case theta_hat start converging to a very
         #   different value from before (for instance because of a bump):
-        # if ((np.amax(self.buffer) - np.amin(self.buffer) > 2.5*self.thr_conv)) and (self.gamma<15) :
-        #     self.gamma = rospy.set_param("~gamma", self.gamma*1.5)
-        #     self.thr_conv = self.thr_conv*1.8
+        if ((np.amax(self.buffer) - np.amin(self.buffer) > 2.5*self.thr_conv)) and (self.gamma<15) :
+            self.gamma = rospy.set_param("~gamma", self.gamma*1.5)
+            self.thr_conv = self.thr_conv*1.8
 
 
         end_time = rospy.Time.now()
@@ -245,6 +242,6 @@ class AdaptiveControllerNode(DTROS):
 
 if __name__ == '__main__':
     # Initialize the node
-    AC_node = AdaptiveControllerNode(node_name='ac_node')
+    AC_node = AdaptiveControllerNode(node_name='new_node')
     # Keep it spinning to keep the node alive
     rospy.spin()
