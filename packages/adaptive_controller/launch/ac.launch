@@ -2,8 +2,8 @@
 
 	<arg name="node_name" default="syn"/>
 
-	<arg name="gamma" default="0.8" doc="Porportional factor that correct the internal state of Adaptive Controller."/>
-	<arg name="error2use" default="0" doc="0 to use error on d; 1 to use error on phi."/>
+	<arg name="gamma" default="0.6" doc="Porportional factor that correct the internal state of Adaptive Controller."/>
+	<arg name="error2use" default="1" doc="0 to use error on d; 1 to use error on phi."/>
 
 	<include file="$(find adaptive_controller)/launch/lane_following.launch"/>
 

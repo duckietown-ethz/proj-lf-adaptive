@@ -33,7 +33,7 @@ class AdaptiveControllerNode(DTROS):
 
     def __init__(self, node_name):
 
-        self.first = 0
+        self.flag = 0
 
         # Initialize the DTROS parent class
         super(AdaptiveControllerNode, self).__init__(node_name=node_name)
@@ -86,9 +86,10 @@ class AdaptiveControllerNode(DTROS):
         # self.sub_actuator_limits = rospy.Subscriber("lane_controller_node/actuator_limits", Twist2DStamped, self.actuator_limits_callback, queue_size=1)
         #self.sub_wheels_cmd = rospy.Subscriber("wheels_driver_node/wheels_cmd", Twist2DStamped, self.set_time_wheels_cmd, queue_size=1)
 
+        # To make sure that we consider associated lane poses and car commands, we use the function TimeSynchronizer provided in ropsy:
+        # this does exactly what we mean to do, calling the callback only when it receive two mesages with the same timestamps in the header.
         pose_sub = message_filters.Subscriber("lane_filter_node/lane_pose", LanePose)
         cmd_sub = message_filters.Subscriber("lane_controller_node/ac_rif", Twist2DStamped)
-
         ts = message_filters.TimeSynchronizer([pose_sub, cmd_sub], 10)
         ts.registerCallback(self.correctCommand)
 
@@ -114,12 +115,15 @@ class AdaptiveControllerNode(DTROS):
 
         self.t_lane_pose_k = car_cmd.header.stamp.to_sec()
 
-        if not self.first:
-            self.first = 1
-            self.t_lane_pose_k_minus = car_cmd.header.stamp.to_sec()
-            self.ac_rif_k_minus = np.asarray([car_cmd.v, car_cmd.omega])
-            self.t_lane_pose_k_minus = self.t_lane_pose_k
-            return
+        # For first iteration
+        # if not self.flag:
+        #     self.flag = 1
+        #     self.t_lane_pose_k_minus = car_cmd.header.stamp.to_sec()
+        #     self.ac_rif_k = np.asarray([car_cmd.v, car_cmd.omega])
+        #
+        #     self.ac_rif_k_minus = self.ac_rif_k
+        #     self.t_lane_pose_k_minus = self.t_lane_pose_k
+        #     return
 
         # self.t_lane_pose_k = self.t_lane_pose_k.to_sec()
 
@@ -161,7 +165,7 @@ class AdaptiveControllerNode(DTROS):
 
         #filter out TS too big or too small
         #do not update theta in curves omega accepted -1.0<omega< +1.0
-        if (Ts >0.025) and (Ts < 0.25) and (car_cmd.omega < 1.5) and (car_cmd.omega > -1.5) :
+        if (Ts >0.025) and (Ts < 0.25) and (car_cmd.omega < 1.5) and (car_cmd.omega > -1.5) and (self.flag):
 
             self.lane_pose_k_predicted[0] = self.lane_pose_k_minus[0] + self.ac_rif_k_minus[0] * Ts * math.sin(self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts * 0.5)
             self.lane_pose_k_predicted[1] = self.lane_pose_k_minus[1] + self.ac_rif_k_minus[1] * Ts
@@ -203,24 +207,32 @@ class AdaptiveControllerNode(DTROS):
                 self.log("gamma : %f" % self.gamma)
                 self.log("theta_hat_k : %f" % self.theta_hat_k)
 
+                # Shift buffer and add last theta_hat_k
+                # self.past_theta_hats = np.append(self.past_theta_hats[1:],np.asarray(self.theta_hat_k))
+                self.past_theta_hats = shift(self.past_theta_hats, 1, cval=self.theta_hat_k)
+
             else:
                 self.log("theta not updated!")
+
+        else :
+            self.flag = 1
+            self.log("Update skipped!")
 
 	    # (5) : Compute corrected control command
         car_cmd_corrected.v = self.ac_rif_k[0]
         car_cmd_corrected.omega = self.ac_rif_k[1] + self.theta_hat_k
 
-        # Make sure omega is in the allowed range
+        # val = self.theta_hat_k*0.1/0.46
+        # name_trim = "/" + self.veh_name + "/kinematics_node/trim"
+        # rospy.set_param(name_trim, str(val))
+
+        # Make sure omega is in the allowed range:
         if car_cmd_corrected.omega > self.omega_max: car_cmd_corrected.omega = self.omega_max
         if car_cmd_corrected.omega < self.omega_min: car_cmd_corrected.omega = self.omega_min
 
         # Publish corrected command
         car_cmd_corrected.header = car_cmd.header
         self.pub_corrected_car_cmd.publish(car_cmd_corrected)
-
-        # Shift buffer and add last theta_hat_k
-        # self.past_theta_hats = np.append(self.past_theta_hats[1:],np.asarray(self.theta_hat_k))
-        self.past_theta_hats = shift(self.past_theta_hats, 1, cval=self.theta_hat_k)
 
         # If theta hat is converging, then slowly reduce gamma
 
