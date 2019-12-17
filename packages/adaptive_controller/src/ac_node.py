@@ -217,6 +217,9 @@ class AdaptiveControllerNode(DTROS):
             self.stage = self.stage + 1
             #set incremental variable to zero start count down again
             self.i = 0 
+            if self.stage == 2:
+                # for last gamma stay a little more 
+                self.i = -25
             if self.stage == 3: 
                 #calibration finished, ac_node shutdown, gives back keyboard control with normal lane following running
                 self.onShutdown()
@@ -362,7 +365,7 @@ class AdaptiveControllerNode(DTROS):
             "v_max": 1.0,
             "omega_max": 8.0,
         }
-        
+
         current_configuration = "[gain: %s\n trim: %s\n baseline: %s\n radius: %s\n k: %s\n limit: %s\n omega_max: %s\n v_max: %s\n]" % \
         (self.parameters['gain'], self.parameters['trim'], self.parameters['baseline'], self.parameters['radius'],
          self.parameters['k'], self.parameters['limit'], self.parameters['omega_max'], self.parameters['v_max'])
