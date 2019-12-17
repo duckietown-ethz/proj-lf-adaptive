@@ -1,9 +1,13 @@
 # Nice params for lane controller
-
-rosparam set /paperinik313/line_detector_node/top_cutoff 55
+# Already set in yaml files
+rosparam set /paperinik313/line_detector_node/top_cutoff 50
 rosparam set /paperinik313/lane_controller_node/k_d -3.0
 rosparam set /paperinik313/lane_filter_node/matrix_mesh_size 0.8
 rosparam set /paperinik313/ac_node/gamma 4.0
+
+# To set manually
+# Use this command and paste the other 4 lines
+docker run -it --rm  -e ROS_MASTER_URI='http://YOUR_DUCKIEBOT_IP:11311/' duckietown/dt-ros-commons:daffy-amd64 /bin/bash
 
 rosparam set /paperinik313/lane_controller_node/k_d -2.8
 rosparam set /paperinik313/lane_controller_node/omega_max 4.7
@@ -16,14 +20,3 @@ rosparam set /paperinik313/ac_node/error2use 1
 rosparam set /paperinik313/ac_node/gamma 2.0
 rosparam set /paperinik313/kinematics_node/trim -0.1 
 
-#ATTEMPT 1  (not too bad actually)  trim -0.0305
-rosparam set /paperinik313/lane_controller_node/omega_max 4.7
-rosparam set /paperinik313/lane_controller_node/omega_min -4.7
-rosparam set /paperinik313/line_detector_node/top_cutoff 55
-rosparam set /paperinik313/lane_controller_node/k_d -3.0
-rosparam set /paperinik313/lane_filter_node/matrix_mesh_size 0.8
-rosparam set /paperinik313/ac_node/gamma 4.0
-rosparam set /paperinik313/kinematics_node/trim -0.1 
-rosparam set /paperinik313/ac_node/error2use 0
-
-/paperinik313/joy_mapper_node/joystick_override
