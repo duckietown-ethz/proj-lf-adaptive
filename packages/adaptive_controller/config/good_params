@@ -4,9 +4,21 @@ rosparam set /paperinik313/lane_controller_node/omega_max 4.7
 rosparam set /paperinik313/lane_controller_node/omega_min -4.7
 rosparam set /paperinik313/line_detector_node/top_cutoff 55
 rosparam set /paperinik313/lane_controller_node/k_d -3.0
-
+rosparam set /paperinik313/lane_filter_node/matrix_mesh_size 0.8
+rosparam set /paperinik313/ac_node/gamma 4.0
 
 # Other tunable parameters
 rosparam set /paperinik313/lane_controller_node/ac_on false
 rosparam set /paperinik313/ac_node/error2use 1
-rosparam set /paperinik313/ac_node/gamma 0.05
+rosparam set /paperinik313/ac_node/gamma 2.0
+rosparam set /paperinik313/kinematics_node/trim -0.1 
+
+#ATTEMPT 1  (not too bad actually)  trim -0.0305
+rosparam set /paperinik313/lane_controller_node/omega_max 4.7
+rosparam set /paperinik313/lane_controller_node/omega_min -4.7
+rosparam set /paperinik313/line_detector_node/top_cutoff 55
+rosparam set /paperinik313/lane_controller_node/k_d -3.0
+rosparam set /paperinik313/lane_filter_node/matrix_mesh_size 0.8
+rosparam set /paperinik313/ac_node/gamma 4.0
+rosparam set /paperinik313/kinematics_node/trim -0.1 
+rosparam set /paperinik313/ac_node/error2use 0
