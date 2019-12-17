@@ -1,5 +1,5 @@
 img_size: [120,160]
-top_cutoff: 40
+top_cutoff: 50
 segment_max_threshold: 10
 
 
