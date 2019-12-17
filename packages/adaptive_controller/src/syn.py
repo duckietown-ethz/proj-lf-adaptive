@@ -73,6 +73,16 @@ class AdaptiveControllerNode(DTROS):
         self.omega_min = rospy.get_param("/" + self.veh_name +"/lane_controller_node/omega_min")
         self.omega_max = rospy.get_param("/" + self.veh_name + "/lane_controller_node/omega_max")
 
+        # Read initial value of trim
+        self.or_trim = rospy.get_param("/" + self.veh_name +"/kinematics_node/trim")
+        # self.trim = 0.0000000000
+
+        # Other kinematics parameters used
+        self.gain = rospy.get_param("/" + self.veh_name +"/kinematics_node/gain")
+        self.v_bar = rospy.get_param("/" + self.veh_name +"/lane_controller_node/v_bar")
+        self.baseline = rospy.get_param("/" + self.veh_name +"/lane_controller_node/wheel_distance")
+
+
         # Initialize past_theta_hats: this is gonna be used to keep track of of theta_hats' behavior
         self.past_theta_hats = np.zeros(10)
 
@@ -92,6 +102,11 @@ class AdaptiveControllerNode(DTROS):
         cmd_sub = message_filters.Subscriber("lane_controller_node/ac_rif", Twist2DStamped)
         ts = message_filters.TimeSynchronizer([pose_sub, cmd_sub], 10)
         ts.registerCallback(self.correctCommand)
+
+        self.log("Inital gamma : %f" % self.gamma)
+        self.log("Initial trim : %f" % self.or_trim)
+        self.log("Baseline : %f" % self.baseline)
+        self.log("Gain : %f" % self.gain)
 
         self.log("Initialized")
 
@@ -240,6 +255,13 @@ class AdaptiveControllerNode(DTROS):
         # For similar reason as above, we want to increase gamma in case theta_hat start converging to a very
         #   different value from before (for instance because of a bump):
 
+        # Mean of the last the last theta_hats
+        # theta_val = np.mean(self.past_theta_hats)
+
+        # Print out an approximate value of the corrected trim
+        # self.trim = self.trim + thetas_val*self.baseline*self.gain/(2*self.v_bar)
+        # self.trim = self.or_trim + self.theta_hat_k*0.1/0.46
+        # self.log("TRIM : %f" % self.or_trim)
 
         # Update variables for next iteration
         self.lane_pose_k_minus = self.lane_pose_k
