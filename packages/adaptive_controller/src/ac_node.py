@@ -266,9 +266,9 @@ class AdaptiveControllerNode(DTROS):
         v_bar_param_name = "/" + self.veh_name + "/lane_controller_node/v_bar"
         v_bar = rospy.get_param(v_bar_param_name)
     
-      	trim_difference = - (np.mean(self.past_theta_hats)*np.asarray(self.parameters['baseline'])*np.asarray(self.parameters['gain']))/(2.0*np.asarray(v_bar))
+      	#trim_difference = - (np.mean(self.past_theta_hats)*np.asarray(self.parameters['baseline'])*np.asarray(self.parameters['gain']))/(2.0*np.asarray(v_bar))
         trim_used = rospy.get_param(self.trim_param_name)
-        new_trim = round(trim_used,4) - round(trim_difference.astype(float),4) 
+        new_trim = round(trim_used,4)  
         # If new_trim not in this window something went wrong
         if new_trim > 0.15 or new_trim < -0.15 :
         	new_trim = 0.0
