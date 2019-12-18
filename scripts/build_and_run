@@ -1,7 +1,7 @@
 #!/bin/bash
 
-#export VEHNAME=andrew
-export VEHNAME=paperinik313
+export VEHNAME=andrew
+#export VEHNAME=paperinik313
 
 # NOTE: to make only run the container without rebuilding it, just run the run command
 
