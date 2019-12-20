@@ -1,7 +1,0 @@
-#!/bin/bash
-
-export VEHNAME="andrew"
-#export VEHNAME=autobot24
-
-# RUN
-docker -H "$VEHNAME".local run -it -v /data:/data --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1-arm32v7 /bin/bash

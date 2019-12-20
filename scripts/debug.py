@@ -7,7 +7,7 @@ bag_name = "debug_bag"
 bag_name = bag_name + ".bag"
 bag_read = rosbag.Bag(name_bag)
 
-bot_name = "andrew"
+bot_name = "<YOUR_DUCKIEBOT_NAME>"
 
 topic_names = ["/"+bot_name+"/lane_filter_node/lane_pose", "/"+bot_name+"/lane_controller_node/car_cmd"]
 

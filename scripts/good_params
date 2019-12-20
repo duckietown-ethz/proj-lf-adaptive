@@ -1,5 +1,27 @@
+# THOSE PARAMETERS HAVE TO BE SET MANUALLY BEFORE THE START OF THE ADAPTIVE CONTROLLER
+# OTHERWISE THE PIPELINE MAY CRASH
 
-rosparam set /paperinik313/lane_controller_node/omega_max 4.7
-rosparam set /paperinik313/lane_controller_node/omega_min -4.7
-rosparam set /paperinik313/line_detector_node/top_cutoff 55
-rosparam set /paperinik313/lane_controller_node/k_d -3.0
+####################################################################################
+
+# Use this command to open a container on your pc connected to the rosmaster on the bot 
+docker run -it --rm  -e ROS_MASTER_URI='http://YOUR_DUCKIEBOT_IP:11311/' duckietown/dt-ros-commons:daffy-amd64 /bin/bash
+
+# Paste these other lines to set some useful parameters, they are needed to have better performances and stability 
+rosparam set /<YOUR_DUCKIEBOT_NAME>/lane_controller_node/omega_max 4.7
+rosparam set /<YOUR_DUCKIEBOT_NAME>/lane_controller_node/omega_min -4.7
+
+# This last command allows you to change the starting point for the trim estimation, if not set, the starting point will be the trim value read from the yaml file
+rosparam set /<YOUR_DUCKIEBOT_NAME>/kinematics_node/trim 0.0 
+
+####################################################################################
+
+# Other tunable parameters
+
+# Can switch between adaptive lane following to standard lane following setting this parameter to true or false
+rosparam set /<YOUR_DUCKIEBOT_NAME>/lane_controller_node/ac_on false #default value = true
+
+# Can set which error to use for the algorithm, if set 0 error on d, 1 error on phi
+rosparam set /<YOUR_DUCKIEBOT_NAME>/ac_node/error2use 1 #default value = 0
+
+
+

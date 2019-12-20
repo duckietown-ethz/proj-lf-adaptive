@@ -1,22 +1,12 @@
 #!/bin/bash
 
-export VEHNAME="andrew"
-#export VEHNAME=autobot24
+export VEHNAME="<YOUR_DUCKIEBOT_NAME>"
 
 # NOTE: before running make sure that all the old containers from the images dt-duckiebot-interface, dt-car-interface
-#         and dt-core are stopped.
+#       and dt-core are stopped.
 
 # Run demo_all_drivers
 dts duckiebot demo --demo_name all_drivers --duckiebot_name $VEHNAME --package_name duckiebot_interface --image duckietown/dt-duckiebot-interface:daffy
 
-# Wait for the containers to run
-echo "demo_all_drivers installed, switching to demo_all"
-sleep 10
-
 # Run demo_all
 dts duckiebot demo --demo_name all --duckiebot_name $VEHNAME --package_name car_interface --image duckietown/dt-car-interface:daffy
-echo "demo_all installed"
-echo "DONE"
-
-#sleep 10
-#dts duckiebot demo --demo_name lane_following --duckiebot_name $VEHNAME --package_name duckietown_demos --image duckietown/dt-core:daffy

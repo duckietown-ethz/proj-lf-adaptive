@@ -1,17 +1,15 @@
 #!/bin/bash
 
-#export VEHNAME=andrew
-export VEHNAME=paperinik313
-
+export VEHNAME=<YOUR_DUCKIEBOT_NAME>
 # NOTE: to make only run the container without rebuilding it, just run the run command
 
 # BUILD
-# docker -H "$VEHNAME".local build -t proj-lf-adaptive:v1
 dts devel build --ignore-watchtower -f --arch arm32v7 -H "$VEHNAME".local
 
 # RUN
 docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:master-arm32v7
-# docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptivmaster-arm32v7 /bin/bash
+#If you want a terminal within the container uncomment the command below and comment the one above
+# docker -H "$VEHNAME".local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:master-arm32v7 /bin/bash
 
 
 
