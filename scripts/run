@@ -1,0 +1,6 @@
+#!/bin/bash
+
+export VEHNAME="<YOUR_DUCKIEBOT_NAME>"
+
+# RUN
+docker -H "$VEHNAME".local run -it -v /data:/data --rm -v /data:/data --privileged --network=host proj-lf-adaptive:v1-arm32v7 /bin/bash
