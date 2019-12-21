@@ -23,7 +23,7 @@ Supervisor:
 * Jacopo Tani
 
 
-## Mission 
+## 1. Mission 
 
 The goal of the project is to design an Adaptive Controller that allows the estimation of the trim kinematic parameter of a Duckiebot, everything done while performing lane following driving around the city.
 
@@ -35,7 +35,7 @@ The objective is then to identify reliably the trim of a Duckiebot after a short
 </div>
 
 
-# Structure 
+## 2. Structure 
 
 The folder `packages` groups together the Adaptive Controller package that has been introduced as a new functionality, and others that have been modified to improve the performances of the lane following.
 
@@ -44,9 +44,9 @@ The folder `matlab_simulator` collects all the code necessary to run the simulat
 Finally, in the folder `scripts` there are some scripts that can be used as shortcuts to quickly start the demo and perform some data analysis.
 
 
-# Demo 
+## 3. Demo 
 
-## Requirements 
+### 3.1 Requirements 
 
 :o: Laptop configured, according to [Unit C-1 - Laptop Setup](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html).
 
@@ -54,11 +54,11 @@ Finally, in the folder `scripts` there are some scripts that can be used as shor
 
 :o: You have configured the Duckiebot as documented in [Unit C-5 - Duckiebot Initialization](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/setup_duckiebot.html).
 
-:o: [Camera calibration](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/camera_calib.html) completed.
+:o: Successful completion of [Unit C-11 - Camera calibration and validation](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/camera_calib.html).
 
-:heavy_check_mark: **Results:** Make you duckiebot self-calibrate.
+:heavy_check_mark: **Results:** Self-calibration of the Duckiebot trim parameter.
 
-## Expected Results
+### 3.2 Expected Results
 
 The goal is to self-calibrate a poorly calibrated Duckiebot like the following one:
 <div figure-id="fig:pre">
@@ -70,16 +70,16 @@ Ending, after this procedure, with a better calibrated unit, like:
      <img src="media/after.gif" style='width: 20em'/>
 </div>
 
-## Duckiebot setup 
+### 3.3 Duckiebot setup 
 
 All that is required is to have a Duckiebot in DB18 configuration whose camera as already been calibrated as described in [Camera calibration](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/camera_calib.html).
 
-## Duckietown setup 
+### 3.4 Duckietown setup 
 
 No specific setup of the city is required. However, to have faster convergence, it is advisable to run the demo in a city map with as many long straight segment as possible.
 The lane following pipeline used, likewise the standard lane following, does not take into account intersections therefore its behavior will be unpredictable in their presence and might cause the Duckiebot to go out of the lane.
 
-## Instructions 
+### 3.5 Instructions 
 
 To run this demo there are two way of proceeding, using manual commands or using the scripts provided in the relative folder.
 
@@ -90,7 +90,7 @@ Let's start from the first one, using single commands:
        laptop $ git clone https://github.com/duckietown-ethz/proj-lf-adaptive  
        laptop $ cd proj-lf-adaptive
 
-2. Start all the necessary demos, in another terminal from the previous one:
+2. In another terminal, start all the necessary demos:
 * demo all_driver and demo all, similarly as you would do for [Unit E-2 Lane following](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/demo_lane_following.html)  
  Warning: Before running the following commands make sure that all the old containers from the images dt-duckiebot-interface, dt-car-interface and dt-core are stopped.  
  Start the demo all_driver which builds upon `dt-duckiebot-interface` and gives us all the necessary drivers:
@@ -120,5 +120,5 @@ Run the container with the command:
 
    
 
-## Troubleshooting 
+### Troubleshooting 
 
