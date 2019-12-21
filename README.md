@@ -46,19 +46,18 @@ Finally, in the folder `scripts` there are some scripts that can be used as shor
 
 # Demo 
 
-<div class='requirements' markdown="1">
+## Requirements 
 
-Requires: Laptop configured, according to [Unit C-1 - Laptop Setup](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html).
+1. Laptop configured, according to [Unit C-1 - Laptop Setup](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html).
 
-Requires: A Duckiebot in DB18 configuration.
+Requires: A Duckiebot in `DB18` configuration.
 
-Requires: You have configured the Duckiebot as documented in [Unit C-5 - Duckiebot Initialization](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/setup_duckiebot.html).
+2. You have configured the Duckiebot as documented in [Unit C-5 - Duckiebot Initialization](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/setup_duckiebot.html).
 
-Requires: [Camera calibration](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/camera_calib.html) completed.
+3. [Camera calibration](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/camera_calib.html) completed.
 
-Results: Make you duckiebot self-calibrate.
+**Results:** Make you duckiebot self-calibrate.
 
-</div>
 
 ## Duckiebot setup 
 
@@ -75,25 +74,25 @@ To run this demo there are two way of proceeding, using manual commands or using
 
 Let's start from the first one, using single commands:
 
-1. Clone the repository in the desired position and move into it:
+1. Clone the repository in the desired position and move into it:  
 
-    laptop $ git clone https://github.com/duckietown-ethz/proj-lf-adaptive  
-    laptop $ cd proj-lf-adaptive
+       laptop $ git clone https://github.com/duckietown-ethz/proj-lf-adaptive  
+       laptop $ cd proj-lf-adaptive
 
 2. Start all the necessary demos, in another terminal from the previous one:
 * demo all_driver and demo all, similarly as you would do for [Unit E-2 Lane following](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/demo_lane_following.html)  
  Warning: Before running the following commands make sure that all the old containers from the images dt-duckiebot-interface, dt-car-interface and dt-core are stopped.  
  Start the demo all_driver which builds upon `dt-duckiebot-interface` and gives us all the necessary drivers:
  
-    laptop $ dts duckiebot demo --demo_name all_drivers --duckiebot_name [DUCKIEBOT_NAME] --package_name duckiebot_interface --image duckietown/dt-duckiebot-interface:daffy  
+        laptop $ dts duckiebot demo --demo_name all_drivers --duckiebot_name [DUCKIEBOT_NAME] --package_name duckiebot_interface --image duckietown/dt-duckiebot-interface:daffy  
 
   Start the demo all which builds upon `dt-duckiebot-interface` and handles the joystick mapping and the kinematics:  
 
-    laptop $ dts duckiebot demo --demo_name all --duckiebot_name [DUCKIEBOT_NAME] --package_name car_interface --image duckietown/dt-car-interface:daffy  
+        laptop $ dts duckiebot demo --demo_name all --duckiebot_name [DUCKIEBOT_NAME] --package_name car_interface --image duckietown/dt-car-interface:daffy  
 
 * Finally, the virtual joystick container using:
 
-      dts duckiebot keyboard_control [DUCKIEBOT_NAME] --base_image duckietown/dt-core:daffy-amd64
+        dts duckiebot keyboard_control [DUCKIEBOT_NAME] --base_image duckietown/dt-core:daffy-amd64
       
  Recommended: Before proceeding to the next step make sure all the necessary demos are running as in some cases they might stop just after launching. 
 
