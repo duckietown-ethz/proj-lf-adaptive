@@ -11,11 +11,6 @@
 > **"Ab uno disce omnes"**  <br />
 > "From one learn it all" 
 
-Authors | Contact | Mentors | Supervisor
-------- | ------- | ------- | -----------
-Pietro Griffa | griffap@student.ethz.ch | Rohit Suri | Jacopo Tani
-Simone Arreghini | arsimone@student.ethz.ch | Aleksandar Petrov | 
-
 Authors:
 * Pietro Griffa          &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; griffap@student.ethz.ch
 * Simone Arreghini       &nbsp; &nbsp; &nbsp; &nbsp; arsimone@student.ethz.ch
@@ -34,6 +29,11 @@ The goal of the project is to design an Adaptive Controller that allows the esti
 
 The objective is then to identify reliably the trim of a Duckiebot after a short period of standard lane following, starting from an arbitrary initial value. This is done with the aim of getting rid of the manual odometry calibration which is now a  periodic necessary practice to have an acceptable behavior from a Duckiebot.
 
+<h4 style="text-align:center;"> Conceptual Functioning Scheme </h4>
+<div figure-id="fig:scheme">
+     <img src="media/Adaptive_controller_scheme.png" style='width: 20em'/>
+</div>
+
 
 # Structure 
 
@@ -48,16 +48,27 @@ Finally, in the folder `scripts` there are some scripts that can be used as shor
 
 ## Requirements 
 
-1. Laptop configured, according to [Unit C-1 - Laptop Setup](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html).
+:o: Laptop configured, according to [Unit C-1 - Laptop Setup](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/laptop_setup.html).
 
-Requires: A Duckiebot in `DB18` configuration.
+:o: Requires: A Duckiebot in `DB18` configuration.
 
-2. You have configured the Duckiebot as documented in [Unit C-5 - Duckiebot Initialization](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/setup_duckiebot.html).
+:o: You have configured the Duckiebot as documented in [Unit C-5 - Duckiebot Initialization](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/setup_duckiebot.html).
 
-3. [Camera calibration](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/camera_calib.html) completed.
+:o: [Camera calibration](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/camera_calib.html) completed.
 
-**Results:** Make you duckiebot self-calibrate.
+:heavy_check_mark: **Results:** Make you duckiebot self-calibrate.
 
+## Expected Results
+
+The goal is to self-calibrate a poorly calibrated Duckiebot like the following one:
+<div figure-id="fig:pre">
+     <img src="media/pre.gif" style='width: 20em'/>
+</div>
+
+Ending, after this procedure, with a better calibrated unit, like:
+<div figure-id="fig:after">
+     <img src="media/after.gif" style='width: 20em'/>
+</div>
 
 ## Duckiebot setup 
 
