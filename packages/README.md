@@ -3,11 +3,11 @@
 In this folder are collected all the implemented packages.
 
 In particular:
-adaptive_controller: implements the adaptive controller which both corrects the inputs computed by the PID to
-take account of uncertainties on the kinematic parameters of the Duckiebot, and estimates these
-parameters on the fly while roaming the city.
-lane_control: a slightly revised version of the PI controller normally implemented on Duckiebots, such that
+* adaptive_controller: implements the adaptive controller which corrects the wheel command computed by the PI controller to
+take into account the uncertainties in the kinematic parameters of the Duckiebot. It also estimate the adaptive controller internal parameter used to modify the input, everything while roaming around in the Duckietown.
+* lane_control: a slightly changed version of the PI controller normally implemented on Duckiebots, such that
 it includes a switch to turn on and off the Adaptive Controller.
+* lane_filter and line_detector: changed to have performances more robust to noise 
 
-The whole container is build on top on dt-core: adaptive_controller is a fresh new functionality, while
-lane_control substitutes the already existing package in dt-core.
+The whole container is build on top on dt-core: adaptive_controller is the only completely new functionality, while
+the others already exist in dt-core.
