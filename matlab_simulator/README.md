@@ -25,8 +25,6 @@ Three maps are provided for now:
 
 ### Noise
 
-To simulate more realistically the noisy pose estimate provided by the camera on the real Duckiebot, it is possible to induce some noise in the knowledge that the car in our simulation has of the track: to do so set properly the variables ___
+To simulate more realistically the noisy pose estimate provided by the camera on the real Duckiebot, it is possible to induce some noise in the knowledge that the car in our simulation has of the track: to do so set the variable `noise_on_pose = true`
 
-In the same way it is possible to simulate sudden changes in the kinematic parameters of the bot by activating the noise on these: to do so set the variables to the desired values.
-
-
+In the same way it is possible to simulate sudden changes in the kinematic parameters of the bot by activating the noise on these: to do so set the variables `noise_on_parameters` and `noisy_params` to the desired values.
