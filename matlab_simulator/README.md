@@ -3,8 +3,8 @@
 This simulator was developed to test different control architecture and have a general idea of what results to expect.
 
 To run the simulator just run the `main.m` file after setting the desired values for the initialization variables that can be found in the top part of the code.
-To use the Adaptive Controller set the variable `adaptive_on = true`.
-
+To use the Adaptive Controller set the variable `adaptive_on = true`.  
+After running the main a plot will show the position on the Duckiebot on the chosen map. In the bottom left corner you will find some options for showing other graphs and useful visualizationto at your convenience.
 
 ## Settings
 
@@ -27,4 +27,6 @@ Three maps are provided for now:
 
 To simulate more realistically the noisy pose estimate provided by the camera on the real Duckiebot, it is possible to induce some noise in the knowledge that the car in our simulation has of the track: to do so set properly the variables ___
 
-In the same way it is possible to simulate sudden changes in the kinematic parameters of the bot by activating the noise on these: to do so set teh variables ___ to the desired values.
+In the same way it is possible to simulate sudden changes in the kinematic parameters of the bot by activating the noise on these: to do so set the variables to the desired values.
+
+
