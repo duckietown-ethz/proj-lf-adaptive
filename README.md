@@ -173,3 +173,5 @@ Solution: When this happen or is about to happen you can regain control of the D
 **Symptom:** Duckiebot fail to stop after convergence.
 
 Solution: It might happen that sometimes the Duckiebot does not stop after convergence even if the lane following in turned off. This will cause the Duckiebot to eventually go out of the lane as a constant wheel_cmd is being applied. In this case just press the 's' button on the virtual joystick to stop the Duckiebot and you will find yourself as the Duckiebot stopped itself, with the yaml file updated and standard lane following up and running.
+
+## Enjoy, hope you like it!
