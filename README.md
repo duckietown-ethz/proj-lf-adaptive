@@ -81,44 +81,56 @@ The lane following pipeline used, likewise the standard lane following, does not
 
 ### 3.5 Instructions 
 
-To run this demo there are two way of proceeding, using manual commands or using the scripts provided in the relative folder.
+To run this demo there are two way of proceeding, using manual commands or using the scripts provided in the relative folder. In this demo three terminals are needed, so before each command is specified the right terminal in which run the command. 
 
-Let's start from the first one, using single commands:
+##### Let's start from the first one, using single commands:
 
 1. Clone the repository in the desired position and move into it:  
 
-       laptop $ git clone https://github.com/duckietown-ethz/proj-lf-adaptive  
-       laptop $ cd proj-lf-adaptive
+       terminal 1 $ git clone https://github.com/duckietown-ethz/proj-lf-adaptive  
+       terminal 1 $ cd proj-lf-adaptive
 
 2. In another terminal, start all the necessary demos:
 * demo all_driver and demo all, similarly as you would do for [Unit E-2 Lane following](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/demo_lane_following.html)  
  Warning: Before running the following commands make sure that all the old containers from the images dt-duckiebot-interface, dt-car-interface and dt-core are stopped.  
  Start the demo all_driver which builds upon `dt-duckiebot-interface` and gives us all the necessary drivers:
  
-        laptop $ dts duckiebot demo --demo_name all_drivers --duckiebot_name [DUCKIEBOT_NAME] --package_name duckiebot_interface --image duckietown/dt-duckiebot-interface:daffy  
+        terminal 2 $ dts duckiebot demo --demo_name all_drivers --duckiebot_name [DUCKIEBOT_NAME] --package_name duckiebot_interface --image duckietown/dt-duckiebot-interface:daffy  
 
   Start the demo all which builds upon `dt-duckiebot-interface` and handles the joystick mapping and the kinematics:  
 
-        laptop $ dts duckiebot demo --demo_name all --duckiebot_name [DUCKIEBOT_NAME] --package_name car_interface --image duckietown/dt-car-interface:daffy  
+        terminal 2 $ dts duckiebot demo --demo_name all --duckiebot_name [DUCKIEBOT_NAME] --package_name car_interface --image duckietown/dt-car-interface:daffy  
 
 * Finally, the virtual joystick container using:
 
-        dts duckiebot keyboard_control [DUCKIEBOT_NAME] --base_image duckietown/dt-core:daffy-amd64
+        terminal 2 $ dts duckiebot keyboard_control [DUCKIEBOT_NAME] --base_image duckietown/dt-core:daffy-amd64
+  
+  As explained also in [Unit C-9  Making your Duckiebot move](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/rc_control.html) the virtual joystick will pop up. It will be necessary at the end to start the demo.
       
- Recommended: Before proceeding to the next step make sure all the necessary demos are running as in some cases they might stop just after launching. 
+ :heavy_exclamation_mark: **Recommended:** Before proceeding to the next step make sure all the necessary demos are running with the help of the [Portainer](https://docs.duckietown.org/daffy/duckietown-robotics-development/out/basic_db_operation.html), as in some cases they might unpredictably stop just after launching. 
 
-3. Start a container based on dt-ros-commons on you pc connected to the rosmaster of the Duckiebot. This will allow you to set some useful parameters for this demo:
+3. In the first terminal it is now necessary to build the image of the Adaptive Controller pipeline and start the container on the Duckiebot. It is a modified version of dt-core and will run every necessary node for the lane following.
 
-Build the image on the Duckiebot by running the command:
+* Build the image on the Duckiebot by running the command in the main folder of the repository:
+              
+        terminal 1 $ dts devel build --ignore-watchtower -f --arch arm32v7 -H [DUCKIEBOT_NAME].local
 
-    build command
+* Then start the container on the Duckiebot with the command:
 
-Run the container with the command:
+        terminal 1 $ docker -H [DUCKIEBOT_NAME].local run -it -v /data:/data --rm --net=host duckietown/proj-lf-adaptive:master-arm32v7
 
-    run command
-
-
+4. In the third terminal, run a container and attach a bash to it to allow the usage of ROS from your pc. This container will be connected to the rosmaster running on the Duckiebot and from here you will be able to set some useful parameters for this demo:
+       
+        docker run -it --rm  -e ROS_MASTER_URI='http://[DUCKIEBOT_IP]/' duckietown/dt-ros-commons:daffy-amd64 /bin/bash
+ 
+   In this container bash, run the above commands that set some  ROS parameters:
+       
+        rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_max 4.7
+        rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_min -4.7
+        
+   Optionally, there are other changeable parameter whose effect are explained in the file [/scripts/good_params](https://github.com/duckietown-ethz/proj-lf-adaptive/blob/master/scripts/good_params).
    
-
+5. Finally, likewise the standard lane following you can start the demo by pressing 'a' button on the keyboard  
+   
 ### Troubleshooting 
 
