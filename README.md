@@ -90,9 +90,9 @@ To run this demo there are two way of proceeding, using manual commands or using
        terminal 1 $ git clone https://github.com/duckietown-ethz/proj-lf-adaptive  
        terminal 1 $ cd proj-lf-adaptive
 
-2. In another terminal, start all the necessary demos:
-* demo all_driver and demo all, similarly as you would do for [Unit E-2 Lane following](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/demo_lane_following.html)  
- Warning: Before running the following commands make sure that all the old containers from the images dt-duckiebot-interface, dt-car-interface and dt-core are stopped.  
+2. In the second terminal, start all the necessary demos:
+* demo all_driver and demo all, similarly as you would do for [Unit E-2 - Lane following](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/demo_lane_following.html)  
+ :heavy_exclamation_mark: **Warning:** Before running the following commands make sure that all the old containers from the images dt-duckiebot-interface, dt-car-interface and dt-core are stopped.  
  Start the demo all_driver which builds upon `dt-duckiebot-interface` and gives us all the necessary drivers:
  
         terminal 2 $ dts duckiebot demo --demo_name all_drivers --duckiebot_name [DUCKIEBOT_NAME] --package_name duckiebot_interface --image duckietown/dt-duckiebot-interface:daffy  
@@ -105,11 +105,11 @@ To run this demo there are two way of proceeding, using manual commands or using
 
         terminal 2 $ dts duckiebot keyboard_control [DUCKIEBOT_NAME] --base_image duckietown/dt-core:daffy-amd64
   
-  As explained also in [Unit C-9  Making your Duckiebot move](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/rc_control.html) the virtual joystick will pop up. It will be necessary at the end to start the demo.
+  As explained also in [Unit C-9 - Making your Duckiebot move](https://docs.duckietown.org/daffy/opmanual_duckiebot/out/rc_control.html) the virtual joystick will pop up. It will be necessary at the end to start the demo.
       
  :heavy_exclamation_mark: **Recommended:** Before proceeding to the next step make sure all the necessary demos are running with the help of the [Portainer](https://docs.duckietown.org/daffy/duckietown-robotics-development/out/basic_db_operation.html), as in some cases they might unpredictably stop just after launching. 
 
-3. In the first terminal it is now necessary to build the image of the Adaptive Controller pipeline and start the container on the Duckiebot. It is a modified version of dt-core and will run every necessary node for the lane following.
+3. Again in the first terminal, build the image of the Adaptive Controller pipeline and start the container on the Duckiebot. It is a modified version of dt-core and will run every necessary node for the lane following.
 
 * Build the image on the Duckiebot by running the command in the main folder of the repository:
               
@@ -121,16 +121,40 @@ To run this demo there are two way of proceeding, using manual commands or using
 
 4. In the third terminal, run a container and attach a bash to it to allow the usage of ROS from your pc. This container will be connected to the rosmaster running on the Duckiebot and from here you will be able to set some useful parameters for this demo:
        
-        docker run -it --rm  -e ROS_MASTER_URI='http://[DUCKIEBOT_IP]/' duckietown/dt-ros-commons:daffy-amd64 /bin/bash
+        terminal 3 $ docker run -it --rm  -e ROS_MASTER_URI='http://[DUCKIEBOT_IP]/' duckietown/dt-ros-commons:daffy-amd64 /bin/bash
  
-   In this container bash, run the above commands that set some  ROS parameters:
+   In this container bash, run the above commands that set some  ROS parameters that halp improving stability of the lane following algorithm:
        
-        rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_max 4.7
-        rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_min -4.7
+        terminal 3 bash $ rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_max 4.7
+        terminal 3 bash $ rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_min -4.7
         
    Optionally, there are other changeable parameter whose effect are explained in the file [/scripts/good_params](https://github.com/duckietown-ethz/proj-lf-adaptive/blob/master/scripts/good_params).
    
-5. Finally, likewise the standard lane following you can start the demo by pressing 'a' button on the keyboard  
-   
+5. Finally, likewise the standard lane following you can start the demo by pressing 'a' button on the keyboard while having the virtual joystick selected as current tab.  
+ The demo should start and in the first terminal you should be able to see ROS logs with some useful variables in output.
+ 
+6. Wait for the calibration to finish and upon convergence the Duckiebot should stop and the control should be back to the virtual joystick. During this process the calibration yaml file will be permanently updated with the new estimated trim value, in order to retain it between successive boot of the Duckiebot.  
+ Now you can either choose to drive your Duckiebot back manually or press again the 'a' button on the virtual joystick and start the standard lane following with updated parameter that will up and running automatically. 
+ 
+##### Using the scripts:
+
+The scripts are no other than bash files that semplify this procedure for the points 2 and 3. You can find them in the [proj-lf-adaptive/scripts/](https://github.com/duckietown-ethz/proj-lf-adaptive/tree/master/scripts) folder and to use them you just need to open them and change **<YOUR_DUCKIEBOT_NAME>** in the third row in your real hostname and save.
+
+All the point besides 2 and 3 stay the same so they won't be repeated.
+
+2. In the second terminal, after having modified the scripts, start all the necessary demos (demo all, demo all_drivers and the virtual joystick) by running:  
+  :heavy_exclamation_mark: **Warning:** Before running the following commands make sure that all the old containers from the images dt-duckiebot-interface, dt-car-interface and dt-core are stopped.
+
+       terminal 1 $ ./scripts/launch_demos
+      
+  :heavy_exclamation_mark: **Recommended:** As with the normal procedure, before going on to the next step make sure all the necessary demos are running with the help of the [Portainer](https://docs.duckietown.org/daffy/duckietown-robotics-development/out/basic_db_operation.html), as in some cases they might unpredictably stop just after launching.
+ 
+3. Again the first terminal, build the image of the Adaptive Controller pipeline and start the container on the Duckiebot. It is a modified version of dt-core and will run every necessary node for the lane following.
+
+   Build the image on the Duckiebot and start the container on the Duckiebot with the command:
+
+        terminal 1 $ ./scripts/build_and_run
+        
+    
 ### Troubleshooting 
 
