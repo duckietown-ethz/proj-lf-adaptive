@@ -10,3 +10,6 @@ dts duckiebot demo --demo_name all_drivers --duckiebot_name $VEHNAME --package_n
 
 # Run demo_all
 dts duckiebot demo --demo_name all --duckiebot_name $VEHNAME --package_name car_interface --image duckietown/dt-car-interface:daffy
+
+#Run joystick 
+dts duckiebot keyboard_control $VEHNAME --base_image duckietown/dt-core:daffy-amd64
