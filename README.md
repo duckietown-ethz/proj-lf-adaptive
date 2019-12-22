@@ -127,8 +127,12 @@ To run this demo there are two way of proceeding, using manual commands or using
        
         terminal 3 bash $ rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_max 4.7
         terminal 3 bash $ rosparam set /[DUCKIEBOT_NAME]/lane_controller_node/omega_min -4.7
-        
-   Optionally, there are other changeable parameter whose effect are explained in the file [/scripts/good_params](https://github.com/duckietown-ethz/proj-lf-adaptive/blob/master/scripts/good_params).
+   
+   The setting of the initial trim estimate is recommended to be set to 0.0 but this should not effect the outcome of the calibration. You can do that using:
+   
+        terminal 3 bash $ rosparam set /[DUCKIEBOT_NAME]/kinematics_node/trim 0.0
+   
+   Optionally, there are other changeable parameter whose effect are explained in the file [/scripts/good_params](https://github.com/duckietown-ethz/proj-lf-adaptive/blob/master/scripts/good_params). Have a look to this file to be able to get best performance from this demo.
    
 5. Finally, likewise the standard lane following you can start the demo by pressing 'a' button on the keyboard while having the virtual joystick selected as current tab.  
  The demo should start and in the first terminal you should be able to see ROS logs with some useful variables in output.
@@ -138,7 +142,7 @@ To run this demo there are two way of proceeding, using manual commands or using
  
 ##### Using the scripts:
 
-The scripts are no other than bash files that semplify this procedure for the points 2 and 3. You can find them in the [proj-lf-adaptive/scripts/](https://github.com/duckietown-ethz/proj-lf-adaptive/tree/master/scripts) folder and to use them you just need to open them and change **<YOUR_DUCKIEBOT_NAME>** in the third row in your real hostname and save.
+The scripts are no other than bash files that semplify this procedure for the points 2 and 3. You can find them in the [proj-lf-adaptive/scripts/](https://github.com/duckietown-ethz/proj-lf-adaptive/tree/master/scripts) folder and to use them you just need to open and change **<YOUR_DUCKIEBOT_NAME>** in the third row in your real hostname and save.
 
 All the point besides 2 and 3 stay the same so they won't be repeated.
 
@@ -156,5 +160,16 @@ All the point besides 2 and 3 stay the same so they won't be repeated.
         terminal 1 $ ./scripts/build_and_run
         
     
-### Troubleshooting 
+### 3.6 Troubleshooting 
 
+**Symptom:** Lane following does not start.
+
+Solution: Check if all the required demos are up and running.
+
+**Symptom:** Duckiebot go out of the lane during calibration.
+
+Solution: When this happen or is about to happen you can regain control of the Duckiebot by pressing the 's' button on the virtual joystick, straighten the Duckiebot with respect to the lane and press 'a' button to resume lane following. This does not effect the quality of the calibration as the update of the adaptive parameter is inhibited when either the Duckiebot is controlled with the joystick or some anomalies are found in the pipeline.
+
+**Symptom:** Duckiebot fail to stop after convergence.
+
+Solution: It might happen that sometimes the Duckiebot does not stop after convergence even if the lane following in turned off. This will cause the Duckiebot to eventually go out of the lane as a constant wheel_cmd is being applied. In this case just press the 's' button on the virtual joystick to stop the Duckiebot and you will find yourself as the Duckiebot stopped itself, with the yaml file updated and standard lane following up and running.
